@@ -4,18 +4,23 @@ PickleJar is a simple, fun, and hassle-free app that helps groups decide on acti
 ## Getting started
 
 Clone GitHub repository
+
 `git clone git clone https://github.com/joshshiman/picklejar.git`
 
 Navigate to project folder
+
 `cd picklejar`
 
 Initialize virtual environment
+
 `python -m venv venv`
 
 Activate virtual environment
+
 `source venv/bin/activate`
 
 Install dependencies
+
 `pip install -r requirements.txt`
 
 ## Running the Project
