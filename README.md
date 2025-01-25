@@ -21,21 +21,29 @@ Install dependencies
 ## Running the Project
 
 Start the backend
+
 `cd backend`
+
 `python manage.py migrate`
+
 `python manage.py runserver`
 
 Start the Frontend
+
 `cd frontend`
+
 `npm run dev`
 
 ## Django Project Creation (one-time)
 
 Create django project
+
 `django-admin startproject backend`
+
 `cd backend`
 
 Create picklejar app
+
 `python manage.py startapp hangouts`
 
 Define database model (`settings.py DATABASES`)
