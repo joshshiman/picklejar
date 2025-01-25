@@ -22,6 +22,7 @@ Install dependencies
 
 Start the backend
 `cd backend`
+`python manage.py migrate`
 `python manage.py runserver`
 
 Start the Frontend
@@ -37,7 +38,8 @@ Create django project
 Create picklejar app
 `python manage.py startapp hangouts`
 
-Define database model
+Define database model (`settings.py DATABASES`)
+
 ```
 import uuid
 from django.db import models
