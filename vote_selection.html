@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vote on Ideas</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Navigation Bar Styles */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 40px;
+      background-color: #ffffff;
+      color: #333;
+      position: fixed;
+      top: 0px;
+      width: 100%;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+    }
+
+    .navbar .logo {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .navbar .create-button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .navbar .create-button:hover {
+      background-color: #45a049;
+    }
+
+    /* Main Content */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 20px;
+      margin-top: 50px;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 2rem;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* Container Title */
+    .container-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    /* Remaining Votes */
+    .remaining-votes {
+      text-align: right;
+      font-size: 16px;
+      color: #333;
+      margin-top: 5px;
+    }
+
+    /* Idea List Styles */
+    .idea-list ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .idea-item {
+      background: #ffffff;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .idea-item span {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .vote-buttons {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .vote-buttons button {
+      padding: 5px 10px;
+      font-size: 14px;
+      margin: 0 5px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .vote-buttons .upvote {
+      background-color: #48bb78;
+      color: white;
+    }
+
+    .vote-buttons .downvote {
+      background-color: #f56565;
+      color: white;
+    }
+
+    .vote-buttons .upvote:disabled {
+      background-color: #e2e8f0;
+      cursor: not-allowed;
+    }
+
+    .vote-buttons .downvote:hover {
+      background-color: #e53e3e;
+    }
+
+    .vote-count {
+      margin-left: 20px;
+      font-size: 18px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    /* Footer Styles */
+    .footer {
+      width: 100%;
+      padding: 20px;
+      background-color: #333;
+      color: white;
+      text-align: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      font-size: 1rem;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .footer p {
+      margin: 0;
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <div class="navbar">
+    <div class="logo">PickleJar</div>
+    <button class="create-button">New PickleJar</button>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="container">
+    <p class="remaining-votes" id="totalVotesRemaining">Remaining Votes: 5</p>
+
+    <div class="container-title">Vote on Ideas</div>
+
+    <div class="idea-list">
+      <ul id="ideaList">
+        <li>Loading ideas...</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Made with ❤️ for GeeseHacks 2025</p>
+  </footer>
+
+  <script>
+    const API_URL = "http://localhost:8000/hangout/3c083793-ed07-42a7-9fce-62dd364e88e8/ideas/";
+
+    const MAX_UPVOTES = 5;
+    let totalUpvotes = 0;
+    let ideas = [];
+
+    async function fetchIdeas() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          throw new Error("Failed to fetch ideas");
+        }
+        const data = await response.json();
+        ideas = data.map((idea) => ({ text: idea.text, votes: 0, id: idea.id }));
+        renderIdeas();
+      } catch (error) {
+        console.error(error);
+        document.getElementById("ideaList").innerHTML =
+          "<li>Failed to load ideas. Please try again later.</li>";
+      }
+    }
+
+    function renderIdeas() {
+      const ideaList = document.getElementById("ideaList");
+      const totalVotesRemaining = document.getElementById("totalVotesRemaining");
+
+      totalVotesRemaining.textContent = `Remaining Votes: ${MAX_UPVOTES - totalUpvotes}`;
+
+      ideaList.innerHTML = "";
+
+      ideas.forEach((idea, index) => {
+        const listItem = document.createElement("li");
+        listItem.className = "idea-item";
+
+        const ideaText = document.createElement("span");
+        ideaText.textContent = idea.text;
+
+        const voteButtons = document.createElement("div");
+        voteButtons.className = "vote-buttons";
+
+        const upvoteButton = document.createElement("button");
+        upvoteButton.className = "upvote";
+        upvoteButton.textContent = "Add Vote";
+        upvoteButton.disabled = totalUpvotes >= MAX_UPVOTES;
+        upvoteButton.onclick = () => {
+          if (totalUpvotes < MAX_UPVOTES) {
+            ideas[index].votes++;
+            totalUpvotes++;
+            renderIdeas();
+          }
+        };
+
+        const downvoteButton = document.createElement("button");
+        downvoteButton.className = "downvote";
+        downvoteButton.textContent = "Remove Vote";
+        downvoteButton.onclick = () => {
+          if (ideas[index].votes > 0) {
+            ideas[index].votes--;
+            totalUpvotes--;
+            renderIdeas();
+          }
+        };
+
+        voteButtons.appendChild(upvoteButton);
+        voteButtons.appendChild(downvoteButton);
+
+        const voteCount = document.createElement("span");
+        voteCount.className = "vote-count";
+        voteCount.textContent = `${idea.votes} votes`;
+
+        listItem.appendChild(ideaText);
+        listItem.appendChild(voteButtons);
+        listItem.appendChild(voteCount);
+        ideaList.appendChild(listItem);
+      });
+    }
+
+    fetchIdeas();
+  </script>
+</body>
+</html>

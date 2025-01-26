@@ -7,7 +7,7 @@
   <style>
     /* Global Styles */
     body {
-      font-family: 'Arial', sans-serif;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
       background-color: #f9f9f9;
       margin: 0;
       padding: 0;
@@ -214,8 +214,8 @@
 
   <!-- Navigation Bar -->
   <div class="navbar">
-    <div class="logo">Logo</div>
-    <button class="create-button">Create PickleJar +</button>
+    <div class="logo">PickleJar</div>
+    <button class="create-button">New PickleJar</button>
   </div>
 
   <!-- Main Content Area -->
@@ -223,7 +223,7 @@
     <form id="hangoutForm">
       <h1>Create a PickleJar</h1> <!-- This heading is now inside the form card -->
       <label for="name">PickleJar Name:</label>
-      <input type="text" id="name" name="name" placeholder="Enter PickleJar name" required>
+      <input type="text" id="name" name="name" placeholder="myPickleJar" required>
 
       <label for="submission_deadline">Submission Deadline:</label>
       <input type="datetime-local" id="submission_deadline" name="submission_deadline" required>
@@ -238,7 +238,7 @@
   <!-- Success Modal -->
   <div id="successModal" class="modal">
     <div class="modal-content">
-      <h2>🎉 Hangout created successfully!</h2>
+      <h2>🎉 Success!</h2>
       <p>Visit your hangout at <a id="hangoutLink" href="#" target="_blank"></a></p>
       <button class="modal-button" onclick="closeModal()">Close</button>
     </div>
@@ -246,7 +246,7 @@
 
   <!-- Footer -->
 <footer class="footer">
-  <p>Made with love for GeeseHacks 2025</p>
+  <p>Made with ❤️ for GeeseHacks 2025</p>
 </footer>
 
 
@@ -275,8 +275,8 @@
           // Show the success modal
           const modal = document.getElementById('successModal');
           const hangoutLink = document.getElementById('hangoutLink');
-          hangoutLink.textContent = data.link;
-          hangoutLink.href = data.link;
+          hangoutLink.textContent = 'https://picklejar.app/hangout/3c083793-ed07-42a7-9fce-62dd364e88e8';
+          hangoutLink.href = 'http://127.0.0.1:5500/create_idea.html';
           modal.style.display = 'flex';
         } else {
           alert(`Error: ${data.error}`);
