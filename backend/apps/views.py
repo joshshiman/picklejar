@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Hangout, Idea, Vote
-from .serializers import HangoutSerializer, IdeaSerializer, VoteSerializer
+from .models import Hangout, Idea
+from .serializers import HangoutSerializer, IdeaSerializer
 
 @api_view(['POST'])
 def create_hangout(request):
