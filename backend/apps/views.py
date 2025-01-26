@@ -27,15 +27,26 @@ def submit_idea(request, hangout_id):
     serializer = IdeaSerializer(idea)
     return Response({"message": "Idea submitted!", "idea": serializer.data})
 
-@api_view(['POST'])
-def submit_vote(request, hangout_id):
-    """Submit votes for ideas"""
-    hangout = Hangout.objects.get(id=hangout_id)
-    votes = request.data.get('votes')  # List of idea IDs
-    for idea_id in votes:
-        idea = Idea.objects.get(id=idea_id, hangout=hangout)
-        vote, created = Vote.objects.get_or_create(hangout=hangout, idea=idea)
-        vote.count += 1  # Increment vote count
-        vote.save()
+@api_view(['POST', 'DELETE'])
+def add_or_remove_vote(request, idea_id):
+    """Add or remove a vote from an idea."""
+    try:
+        idea = Idea.objects.get(id=idea_id)
+    except Idea.DoesNotExist:
+        return Response({"message": "Idea not found!"}, status=404)
     
-    return Response({"message": "Votes submitted!"})
+    if request.method == 'POST':
+        # Increment vote count
+        idea.vote_count += 1
+        idea.save()
+        return Response({"message": "Vote added!", "vote_count": idea.vote_count})
+    
+    elif request.method == 'DELETE':
+        # Decrement vote count if it's greater than 0
+        if idea.vote_count > 0:
+            idea.vote_count -= 1
+            idea.save()
+            return Response({"message": "Vote removed!", "vote_count": idea.vote_count})
+        else:
+            return Response({"message": "Cannot remove vote. Vote count is already 0."}, status=400)
+
