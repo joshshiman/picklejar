@@ -5,3 +5,4 @@ psycopg2-binary
 django-cron
 python-dotenv
 dj-database-url
+whitenoise
