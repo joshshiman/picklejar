@@ -11,7 +11,8 @@ class HangoutStatus(models.TextChoices):
 class Hangout(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    deadline = models.DateTimeField(null=True)
+    submission_deadline = models.DateTimeField(null=True)
+    voting_deadline = models.DateTimeField(null=True)
     status = models.CharField(
         max_length=50, choices=HangoutStatus.choices, default=HangoutStatus.IDEA_COLLECTION
     )

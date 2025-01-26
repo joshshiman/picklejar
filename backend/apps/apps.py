@@ -13,10 +13,17 @@ class AppsConfig(AppConfig):
 
         def update_hangout_status():
             while True:
-                expired_hangouts = Hangout.objects.filter(deadline__lt=now(), status="idea collection")
-                expired_hangouts.update(status="voting")
-                print(f"Updated {expired_hangouts.count()} hangouts to 'voting'.")
-                time.sleep(30)  
+                # Update status to 'voting' if the submission deadline has passed
+                expired_hangouts_submission = Hangout.objects.filter(submission_deadline__lt=now(), status="idea collection")
+                expired_hangouts_submission.update(status="voting")
+                print(f"Updated {expired_hangouts_submission.count()} hangouts to 'voting'.")
+                
+                # Update status to 'completed' if the voting deadline has passed
+                expired_hangouts_voting = Hangout.objects.filter(voting_deadline__lt=now(), status="voting")
+                expired_hangouts_voting.update(status="completed")
+                print(f"Updated {expired_hangouts_voting.count()} hangouts to 'completed'.")
+                
+                time.sleep(30) 
 
         thread = threading.Thread(target=update_hangout_status, daemon=True)
         thread.start()

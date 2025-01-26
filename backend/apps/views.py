@@ -8,8 +8,9 @@ from .serializers import HangoutSerializer, IdeaSerializer
 def create_hangout(request):
     """Create a new hangout and return its link"""
     name = request.data.get('name')
-    deadline = request.data.get('deadline')
-    hangout = Hangout.objects.create(name=name, deadline=deadline)
+    submission_deadline = request.data.get('submission_deadline')
+    voting_deadline = request.data.get('voting_deadline')
+    hangout = Hangout.objects.create(name=name, submission_deadline=submission_deadline, voting_deadline=voting_deadline)
     
     # Serialize the hangout and return the data
     serializer = HangoutSerializer(hangout)
