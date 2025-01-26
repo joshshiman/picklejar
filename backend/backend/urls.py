@@ -16,10 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from apps.views import create_hangout, submit_idea, submit_vote
+from apps.views import create_hangout, submit_idea, add_or_remove_vote
 
 urlpatterns = [
     path('create/', create_hangout),
     path('<uuid:hangout_id>/submit_idea/', submit_idea),
-    path('<uuid:hangout_id>/submit_vote/', submit_vote),
+    path('<uuid:idea_id>/vote/', add_or_remove_vote)
 ]
