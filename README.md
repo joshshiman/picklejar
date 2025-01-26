@@ -25,11 +25,16 @@ Install dependencies
 
 ## Running the Project
 
-Start the backend
+Navigate to backend
 
 `cd backend`
 
+To update the database when you make model changes
+
+`python manage.py makemigrations`
 `python manage.py migrate`
+
+Start the Backend
 
 `python manage.py runserver`
 
