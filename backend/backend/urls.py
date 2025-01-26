@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from apps.views import create_hangout, submit_idea, submit_vote, get_hangout
+from apps.views import create_hangout, submit_idea, submit_vote
 
 urlpatterns = [
     path('create/', create_hangout),

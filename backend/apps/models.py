@@ -22,12 +22,5 @@ class Idea(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     hangout = models.ForeignKey(Hangout, on_delete=models.CASCADE)
     text = models.TextField()
+    vote_count = models.IntegerField(default=0)
 
-# Votes Model
-class Vote(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    idea = models.ForeignKey(Idea, on_delete=models.CASCADE)
-    count = models.IntegerField(default=0)
-
-    def __str__(self):
-        return f"Vote count for {self.idea.text[:50]}: {self.count}"
