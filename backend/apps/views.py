@@ -21,8 +21,8 @@ def create_hangout(request):
 def submit_idea(request, hangout_id):
     """Submit an idea for a hangout"""
     hangout = Hangout.objects.get(id=hangout_id)
-    content = request.data.get('content')
-    idea = Idea.objects.create(hangout=hangout, content=content)
+    text = request.data.get('text')
+    idea = Idea.objects.create(hangout=hangout, text=text)
     
     # Serialize the new idea and return the data
     serializer = IdeaSerializer(idea)

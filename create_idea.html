@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit an Idea</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Navigation Bar Styles */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 40px;
+            background-color: #ffffff;
+            color: #333;
+            position: fixed;
+            top: 0px;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        .navbar .logo {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .navbar .create-button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .navbar .create-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Main Content */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            margin-top: 50px;
+        }
+
+        /* Form Styles */
+        form {
+            display: flex;
+            flex-direction: column;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 20px; /* Add some space below the heading */
+            text-align: center;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: left;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        input {
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+            color: #333;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background-color: #fff;
+        }
+
+        button {
+            padding: 12px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding-top: 100px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .modal-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Footer Styles */
+        .footer {
+            width: 100%;
+            padding: 20px;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            font-size: 1rem;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+    </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <div class="navbar">
+    <div class="logo">Logo</div>
+    <button class="create-button">Create PickleJar +</button>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="container">
+    <form id="ideaForm">
+      <h1>Submit an Idea</h1>
+      <p><strong>Prompt:</strong> What restaurant are you dying to go to?</p>
+      <input type="text" id="ideaInput" name="idea" placeholder="Enter your idea" required>
+      <button type="submit">Submit Idea</button>
+    </form>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="modal">
+    <div class="modal-content">
+      <h2>🎉 Idea submitted successfully!</h2>
+      <p>Your idea has been submitted successfully.</p>
+      <button class="modal-button" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Made with love for GeeseHacks 2025</p>
+  </footer>
+
+  <script>
+    document.getElementById("ideaForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const idea = document.getElementById("ideaInput").value;
+
+        fetch("http://localhost:8000/3c083793-ed07-42a7-9fce-62dd364e88e8/submit_idea/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ text: idea })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const modal = document.getElementById("successModal");
+            modal.style.display = "flex"; // Show success modal
+        })
+        .catch(error => {
+            console.error("Error submitting idea:", error);
+            document.getElementById("responseMessage").textContent = "Error submitting idea.";
+        });
+    });
+
+    // Close the modal
+    function closeModal() {
+      const modal = document.getElementById('successModal');
+      modal.style.display = 'none';
+    }
+
+    // Close modal if clicked outside of the modal content
+    window.onclick = function(event) {
+      const modal = document.getElementById('successModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    };
+  </script>
+
+</body>
+</html>
