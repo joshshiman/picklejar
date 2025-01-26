@@ -21,7 +21,7 @@ def submit_idea(request, hangout_id):
     """Submit an idea for a hangout"""
     hangout = Hangout.objects.get(id=hangout_id)
     content = request.data.get('content')
-    idea = Idea.objects.create(hangout=hangout, session_id=session_id, content=content)
+    idea = Idea.objects.create(hangout=hangout, content=content)
     
     # Serialize the new idea and return the data
     serializer = IdeaSerializer(idea)
@@ -34,7 +34,7 @@ def submit_vote(request, hangout_id):
     votes = request.data.get('votes')  # List of idea IDs
     for idea_id in votes:
         idea = Idea.objects.get(id=idea_id, hangout=hangout)
-        vote, created = Vote.objects.get_or_create(hangout=hangout, idea=idea, session_id=session_id)
+        vote, created = Vote.objects.get_or_create(hangout=hangout, idea=idea)
         vote.count += 1  # Increment vote count
         vote.save()
     
