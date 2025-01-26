@@ -17,24 +17,16 @@ class Hangout(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.name
-
 # Ideas Model
 class Idea(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     hangout = models.ForeignKey(Hangout, on_delete=models.CASCADE)
-    session_id = models.CharField(max_length=255, null=True)
     text = models.TextField()
-
-    def __str__(self):
-        return self.text[:50]  # Showing the first 50 chars for display
 
 # Votes Model
 class Vote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     idea = models.ForeignKey(Idea, on_delete=models.CASCADE)
-    session_id = models.CharField(max_length=255, null=True)
     count = models.IntegerField(default=0)
 
     def __str__(self):

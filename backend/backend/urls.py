@@ -22,5 +22,4 @@ urlpatterns = [
     path('create/', create_hangout),
     path('<uuid:hangout_id>/submit_idea/', submit_idea),
     path('<uuid:hangout_id>/submit_vote/', submit_vote),
-    path('hangouts/<uuid:hangout_id>/', get_hangout, name='get_hangout'),
 ]
