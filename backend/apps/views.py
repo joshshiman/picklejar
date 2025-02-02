@@ -84,3 +84,16 @@ def submit_votes(request, participant_id):
         idea.save()
     
     return Response({"message": "Votes submitted"})
+
+@api_view(['GET'])
+def get_ideas_by_hangout(request, hangout_id):
+    """Retrieve all ideas associated with a specific hangout ID"""
+    try:
+        # Filter ideas by the provided hangout_id
+        ideas = Idea.objects.filter(hangout_id=hangout_id)
+    except Hangout.DoesNotExist:
+        return Response({"message": "Hangout not found!"}, status=404)
+
+    # Serialize the list of ideas
+    serializer = IdeaSerializer(ideas, many=True)
+    return Response(serializer.data)
