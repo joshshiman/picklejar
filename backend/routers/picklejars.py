@@ -35,7 +35,7 @@ def create_picklejar(picklejar: PickleJarCreate, db: Session = Depends(get_db)):
         title=picklejar.title,
         description=picklejar.description,
         points_per_voter=picklejar.points_per_voter,
-        max_suggestions_per_member=picklejar.max_suggestions_per_member,
+        max_suggestions_per_member=1000,  # Effectively unlimited
         suggestion_deadline=picklejar.suggestion_deadline,
         voting_deadline=picklejar.voting_deadline,
         hangout_datetime=picklejar.hangout_datetime,
@@ -171,8 +171,8 @@ def start_voting_phase(picklejar_id: str, db: Session = Depends(get_db)):
     Move PickleJar to the 'voting' phase.
 
     When entering the voting phase, the system derives `points_per_voter`
-    automatically based on the number of members who have joined:
-        points_per_voter = max(member_count - 1, 1)
+    automatically based on the number of suggestions:
+        points_per_voter = max(suggestion_count - 1, 1)
 
     This value is then enforced by the voting endpoint and should not be
     configured directly by clients.
@@ -202,12 +202,11 @@ def start_voting_phase(picklejar_id: str, db: Session = Depends(get_db)):
             detail="Cannot start voting with no suggestions",
         )
 
-    # Derive points_per_voter from the number of members (n - 1, with a minimum of 1)
-    member_count = db.query(Member).filter(Member.picklejar_id == picklejar_id).count()
-    if member_count > 1:
-        db_picklejar.points_per_voter = max(member_count - 1, 1)
+    # Derive points_per_voter from the number of suggestions (n - 1, with a minimum of 1)
+    if suggestion_count > 1:
+        db_picklejar.points_per_voter = max(suggestion_count - 1, 1)
     else:
-        # If there is only one member (or none yet), fall back to 1 point
+        # If there is only one suggestion, fall back to 1 point
         db_picklejar.points_per_voter = 1
 
     db_picklejar.status = "voting"

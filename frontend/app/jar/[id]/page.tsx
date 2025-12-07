@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Share2, Edit2, Circle } from "lucide-react";
+import { Share2, Edit2, Circle, Check, Copy } from "lucide-react";
 
 type PickleJarStatus =
   | "setup"
@@ -21,6 +21,7 @@ interface PickleJar {
   status: PickleJarStatus | string;
   suggestion_deadline?: string | null;
   voting_deadline?: string | null;
+  points_per_voter?: number;
 }
 
 interface Member {
@@ -249,11 +250,24 @@ export default function PickleJarPage() {
     }
   };
 
+  const handleCopyLink = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopyState("copied");
+      setTimeout(() => setCopyState("idle"), 2500);
+    } catch (error) {
+      console.error("Error copying link:", error);
+    }
+  };
+
   const isLoading = !picklejar;
 
   const memberCount = members.length;
+  const suggestionCount = suggestions.length;
   const estimatedPointsPerVoter =
-    memberCount > 1 ? Math.max(memberCount - 1, 1) : 0;
+    picklejar?.points_per_voter ??
+    (suggestionCount > 1 ? Math.max(suggestionCount - 1, 1) : 1);
 
   const renderStatusBadge = () => {
     if (normalizedStatus === "unknown") return null;
@@ -363,7 +377,9 @@ export default function PickleJarPage() {
                   key={m.id}
                   className="flex items-center justify-between text-sm text-gray-700"
                 >
-                  <span>{m.display_name || "Anonymous"}</span>
+                  <span>
+                    {m.id === memberId ? "Me" : m.display_name || "Anonymous"}
+                  </span>
                   <div className="flex items-center gap-2">
                     {m.has_suggested && (
                       <span
@@ -603,11 +619,7 @@ export default function PickleJarPage() {
                     className="inline-flex items-center justify-center rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors disabled:cursor-wait"
                   >
                     <Share2 className="mr-2 h-4 w-4" />
-                    {copyState === "copied"
-                      ? "Copied"
-                      : isSharing
-                        ? "Sharing…"
-                        : "Share"}
+                    Share
                   </button>
                   <Link
                     href={`/jar/${id}/edit`}
@@ -659,6 +671,30 @@ export default function PickleJarPage() {
                 {renderPhaseContent()}
               </>
             )}
+
+            {/* Share Link Footer */}
+            <div className="mt-16 border-t border-gray-100 pt-8 text-center">
+              <p className="mb-4 text-sm text-gray-500">
+                Share this link with your group
+              </p>
+              <div className="mx-auto flex items-center justify-center gap-2 rounded-md bg-gray-50 p-1 pr-2 w-fit border border-gray-200">
+                <div className="px-3 py-1 text-sm text-gray-600 font-mono max-w-[200px] sm:max-w-md truncate">
+                  {shareUrl.replace(/^https?:\/\//, "")}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="inline-flex items-center justify-center rounded bg-white px-2 py-1 text-xs font-medium text-gray-900 shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
+                  title="Copy link"
+                >
+                  {copyState === "copied" ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </button>
+              </div>
+            </div>
           </>
         )}
       </div>

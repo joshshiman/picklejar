@@ -119,7 +119,7 @@ export default function VotePage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/votes/${id}/vote?member_id=${memberId}`,
         { votes: votesToSubmit },
       );
-      router.push(`/jar/${id}/results`);
+      router.push(`/jar/${id}`);
     } catch (error) {
       console.error("Failed to submit votes:", error);
       alert("Failed to submit votes. Please try again.");
