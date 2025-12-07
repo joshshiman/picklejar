@@ -6,6 +6,8 @@
 
 PickleJar is a frictionless platform that helps groups of friends democratically and anonymously decide on hangout plans. Inspired by Music League and LettuceMeet, it removes the awkwardness and indecision from group planning.
 
+From the moment someone hits the homepage, they’re dropped straight into a beautiful, typeform-style flow to create a new PickleJar. As soon as the host finishes, they get a **single shareable link** that guests can use for **everything**: joining, suggesting ideas, voting, and viewing the final result.
+
 ---
 
 ## 🎯 The Problem
@@ -27,11 +29,32 @@ PickleJar creates a **democratic, anonymous, and frictionless** way to make grou
 
 ### How It Works
 
-1. **Create** - A host creates a "PickleJar" and shares a unique link with the group
-2. **Suggest** - Everyone anonymously submits their hangout ideas
-3. **Vote** - Members allocate points across all suggestions (including their own)
-4. **Decide** - The suggestion with the most points wins
-5. **Remind** - Everyone gets reminders for the winning hangout
+1. **Create (host)**  
+   The moment you land on PickleJar, you’re already in the creation flow. In a few seconds you:
+   - Name the decision (e.g., “Friday Night Dinner”)
+   - Optionally add a short description for context
+
+2. **Share (host)**  
+   As soon as you finish the flow, you get **one shareable link** with:
+   - A clear copy button  
+   - A URL like `/pj/abc123` that you can drop into any group chat  
+
+3. **Suggest (guests)**  
+   Everyone who opens that same link:
+   - Joins the hangout with just their phone number
+   - Can anonymously submit one or more suggestions
+
+4. **Vote (guests)**  
+   When the host moves the PickleJar to voting (via the same link):
+   - All guests see the full list of suggestions
+   - Each guest allocates their points across suggestions (including their own)
+   - Votes are anonymous
+
+5. **Decide & See Results (everyone)**  
+   When voting is done, the **same link** reveals:
+   - The winning suggestion
+   - Full ranking with total points
+   - (Future) Optional reminders and calendar invites
 
 ### Key Features
 
@@ -47,43 +70,67 @@ PickleJar creates a **democratic, anonymous, and frictionless** way to make grou
 ## 🔄 The PickleJar Process
 
 ### Phase 1: Setup (Host)
+
+The host walks through a typeform-style flow that appears immediately on the homepage — there’s no separate “landing” screen.
+
 ```
-Host creates PickleJar → Configures settings → Shares unique link
+Homepage → Step-by-step create flow → Single shareable link
 ```
-**Settings Include:**
-- Suggestion deadline (time-based or when all submit)
-- Voting deadline (time-based or when all vote)
-- Points per voter (e.g., 10 points to distribute)
-- Optional: Date/time constraints for the hangout
+
+**What the host sets up:**
+- **Title** – “Friday Night Dinner”, “Weekend Ski Trip”, etc.
+- **Optional context** – short description of constraints or preferences
+
+When the flow completes, the app shows:
+- The **host view** for that PickleJar
+- A **copyable link** that guests will use for every phase
 
 ### Phase 2: Suggestions (All Members)
+
+The host shares the single PickleJar link with the group.
+
 ```
-Members join via link → Enter phone number → Submit suggestion(s)
+Open shared link → Join with phone → Suggest ideas
 ```
-**Status Updates:**
-- Members can see who has joined
-- Members can see how many suggestions are in
-- Suggestions remain anonymous until voting ends
+
+**Guest experience via the same link:**
+- Join the hangout by entering a phone number (no account)
+- See who has joined (anonymized list)
+- Anonymously submit one or more suggestions
+
+**Status Updates (host + guests):**
+- See how many people have joined
+- See how many suggestions are in
+- Suggestions stay anonymous to other guests until voting is complete
 
 ### Phase 3: Voting (All Members)
+
+When the host starts voting (from the same PickleJar link), everyone’s experience updates.
+
 ```
-View all suggestions → Allocate points → Submit votes
+Open the same link → See all suggestions → Allocate points → Submit votes
 ```
+
 **Voting Rules:**
 - Each member gets a fixed number of points (e.g., 10)
-- Distribute points across suggestions (can put all on one or spread them out)
+- Distribute points across suggestions (all-in on one or spread across many)
 - Can vote on your own suggestion
 - Votes are anonymous
+- Guests use the **same URL** they used for joining and suggesting
 
 ### Phase 4: Results & Reminders
+
+Once voting is finished, the PickleJar progresses to results — again, at the exact same URL.
+
 ```
-Voting ends → Winner announced → Reminders sent
+Open the same link → See ranked results → Winner announced
 ```
+
 **What Happens:**
 - The suggestion with the most points is revealed as the winner
 - All suggestions and vote totals are revealed
-- Calendar invites sent to all participants
-- Reminder notifications before the hangout
+- (Planned) Calendar invites sent to all participants
+- (Planned) Reminder notifications before the hangout
 
 ---
 
@@ -173,12 +220,11 @@ Voting ends → Winner announced → Reminders sent
 
 ### Running the Project
 
-#### Backend (Django)
+#### Backend (FastAPI)
 
 ```bash
 cd backend
 
-# Create the database (SQLite will be created automatically on first run)
 # Run the FastAPI server with auto-reload
 uvicorn main:app --reload
 
@@ -200,7 +246,14 @@ cd frontend
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:3000`
+The frontend will be available at `http://localhost:3000`.
+
+**Initial user experience:**
+- Visiting `/` immediately shows the **typeform-style “Create a PickleJar” flow** — no separate hero/landing screen
+- Finishing that flow:
+  - Creates the PickleJar via the FastAPI backend
+  - Redirects the host into `/pj/{id}` (the unified hangout link)
+  - Shows a clearly highlighted, copyable link to share with guests
 
 ---
 
@@ -208,20 +261,26 @@ The frontend will be available at `http://localhost:3000`
 
 **Scenario**: A group of 5 friends wants to decide where to eat dinner
 
-1. **Sarah** creates a PickleJar titled "Friday Dinner 🍕"
-2. She shares the link: `picklejar.app/pj/abc123xyz`
-3. Everyone joins and submits suggestions:
+1. **Sarah** lands on `picklejar.app` and is immediately walked through the create flow:
+   - Title: “Friday Dinner 🍕”
+   - Points per voter: 10
+   - Host phone: her number
+2. When she finishes, she’s taken straight to the host view and sees a shareable link like:  
+   `picklejar.app/pj/abc123xyz` with a **Copy link** button.
+3. She drops that single link into the group chat.
+4. Everyone opens the same URL, joins with their phone numbers, and submits suggestions:
    - Pizza place downtown
    - New sushi restaurant
    - Thai food
    - Someone's apartment (potluck)
-4. Voting opens with 10 points per person to distribute
-5. Results:
+5. When enough suggestions are in, Sarah flips the PickleJar into **voting** (from the same link).
+6. Each friend revisits that same URL, allocates their 10 points across suggestions, and submits their votes.
+7. Once voting is done, the same URL shows the results:
    - Thai food: 28 points ✅ **Winner**
    - Sushi: 22 points
    - Potluck: 15 points
    - Pizza: 5 points
-6. Everyone receives a calendar invite for Thai food on Friday at 7pm
+8. (Planned) Everyone receives a calendar invite for Thai food on Friday at 7pm.
 
 ---
 

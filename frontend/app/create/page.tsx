@@ -1,133 +1,142 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
 type FormData = {
   title: string;
   description: string;
-  points_per_voter: number;
-  creator_phone: string;
 };
 
 export default function CreatePickleJarPage() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>();
   const router = useRouter();
+  const [form, setForm] = useState<FormData>({ title: "", description: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onSubmit = async (data: FormData) => {
+  const handleChange =
+    (field: keyof FormData) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      setForm((prev) => ({ ...prev, [field]: value }));
+    };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim()) {
+      setError("Please give your PickleJar a name.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/picklejars/`,
-        data,
+        {
+          title: form.title.trim(),
+          description: form.description.trim() || null,
+          // creator_phone intentionally omitted for minimal flow;
+          // backend should treat it as optional or handle defaults.
+        },
       );
+
       const picklejar = response.data;
-      router.push(`/pj/${picklejar.id}`);
-    } catch (error) {
-      console.error("Failed to create PickleJar:", error);
-      // Handle error state here
+      if (!picklejar?.id) {
+        throw new Error("PickleJar was created but no ID was returned.");
+      }
+
+      router.push(`/jar/${picklejar.id}`);
+    } catch (err: any) {
+      console.error("Failed to create PickleJar:", err);
+      const msg =
+        err?.response?.data?.detail ||
+        err?.message ||
+        "Something went wrong creating your PickleJar.";
+      setError(typeof msg === "string" ? msg : "Unable to create PickleJar.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-8">
+    <main className="min-h-screen bg-slate-950 text-slate-50 flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
-        <h1 className="text-4xl font-bold text-center text-green-600 mb-8">
-          Create a New PickleJar
-        </h1>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="bg-white dark:bg-gray-800 shadow-md rounded-lg px-8 pt-6 pb-8 mb-4"
-        >
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
-              htmlFor="title"
-            >
-              Title
-            </label>
-            <input
-              id="title"
-              type="text"
-              placeholder="e.g., Friday Night Dinner"
-              {...register("title", { required: "Title is required" })}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700"
-            />
-            {errors.title && (
-              <p className="text-red-500 text-xs italic">
-                {errors.title.message}
+        <header className="mb-8 text-center">
+          <p className="text-xs uppercase tracking-[0.25em] text-slate-400 mb-2">
+            PickleJar
+          </p>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-50 mb-3">
+            Create a new <span className="text-emerald-400">PickleJar</span>
+          </h1>
+          <p className="text-sm sm:text-base text-slate-400 max-w-md mx-auto">
+            Just give your hangout a name. Description is optional. You&apos;ll
+            get a single link to share with your group.
+          </p>
+        </header>
+
+        <section className="bg-slate-900/60 border border-slate-800 rounded-3xl shadow-xl shadow-black/40 p-6 sm:p-8 space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label
+                htmlFor="title"
+                className="block text-xs font-medium text-slate-200"
+              >
+                Meeting name
+              </label>
+              <input
+                id="title"
+                type="text"
+                placeholder="e.g. Friday Night Dinner, Game Night, Ski Trip"
+                value={form.title}
+                onChange={handleChange("title")}
+                className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-transparent"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="description"
+                className="block text-xs font-medium text-slate-200"
+              >
+                Description (optional)
+              </label>
+              <textarea
+                id="description"
+                placeholder="Add any context, constraints, or ideas to guide suggestions."
+                rows={3}
+                value={form.description}
+                onChange={handleChange("description")}
+                className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-transparent resize-none"
+              />
+              <p className="text-[11px] text-slate-500">
+                You can leave this blank if the name is self-explanatory.
               </p>
+            </div>
+
+            {error && (
+              <div className="rounded-2xl border border-red-500/60 bg-red-950/40 px-4 py-3 text-xs text-red-100">
+                {error}
+              </div>
             )}
-          </div>
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
-              htmlFor="description"
-            >
-              Description
-            </label>
-            <textarea
-              id="description"
-              placeholder="Let's decide where to eat!"
-              {...register("description")}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 h-24"
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
-              htmlFor="creator_phone"
-            >
-              Your Phone Number
-            </label>
-            <input
-              id="creator_phone"
-              type="tel"
-              placeholder="+1234567890"
-              {...register("creator_phone", {
-                required: "Phone number is required",
-              })}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700"
-            />
-            {errors.creator_phone && (
-              <p className="text-red-500 text-xs italic">
-                {errors.creator_phone.message}
-              </p>
-            )}
-          </div>
-          <div className="mb-6">
-            <label
-              className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
-              htmlFor="points_per_voter"
-            >
-              Points per Voter
-            </label>
-            <input
-              id="points_per_voter"
-              type="number"
-              defaultValue={10}
-              {...register("points_per_voter", {
-                required: true,
-                valueAsNumber: true,
-                min: 1,
-              })}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700"
-            />
-          </div>
-          <div className="flex items-center justify-between">
+
             <button
               type="submit"
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+              disabled={isSubmitting}
+              className="w-full inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/30 hover:bg-emerald-300 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
-              Create PickleJar
+              {isSubmitting ? "Creating your PickleJar…" : "Create PickleJar"}
             </button>
-          </div>
-        </form>
+          </form>
+
+          <p className="text-[11px] text-slate-500 text-center">
+            After you create this PickleJar, you&apos;ll land on the main page
+            with a single shareable link. No login required for guests.
+          </p>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

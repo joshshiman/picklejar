@@ -25,6 +25,11 @@ def create_picklejar(picklejar: PickleJarCreate, db: Session = Depends(get_db)):
     """
     Create a new PickleJar.
     Returns the created PickleJar with a unique shareable link ID.
+
+    Note:
+    - In the minimal flow, `creator_phone` may be omitted. When it is not
+      provided, we do not auto-create a host member; members join later via
+      the join endpoint.
     """
     db_picklejar = PickleJar(
         title=picklejar.title,
@@ -42,15 +47,16 @@ def create_picklejar(picklejar: PickleJarCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_picklejar)
 
-    # Automatically add creator as first member
-    creator_member = Member(
-        picklejar_id=db_picklejar.id,
-        phone_number=picklejar.creator_phone,
-        display_name="Host",
-        is_verified=False,
-    )
-    db.add(creator_member)
-    db.commit()
+    # Automatically add creator as first member only if a phone was provided
+    if picklejar.creator_phone:
+        creator_member = Member(
+            picklejar_id=db_picklejar.id,
+            phone_number=picklejar.creator_phone,
+            display_name="Host",
+            is_verified=False,
+        )
+        db.add(creator_member)
+        db.commit()
 
     return db_picklejar
 
@@ -163,6 +169,13 @@ def start_suggesting_phase(picklejar_id: str, db: Session = Depends(get_db)):
 def start_voting_phase(picklejar_id: str, db: Session = Depends(get_db)):
     """
     Move PickleJar to the 'voting' phase.
+
+    When entering the voting phase, the system derives `points_per_voter`
+    automatically based on the number of members who have joined:
+        points_per_voter = max(member_count - 1, 1)
+
+    This value is then enforced by the voting endpoint and should not be
+    configured directly by clients.
     """
     db_picklejar = db.query(PickleJar).filter(PickleJar.id == picklejar_id).first()
 
@@ -189,13 +202,24 @@ def start_voting_phase(picklejar_id: str, db: Session = Depends(get_db)):
             detail="Cannot start voting with no suggestions",
         )
 
+    # Derive points_per_voter from the number of members (n - 1, with a minimum of 1)
+    member_count = db.query(Member).filter(Member.picklejar_id == picklejar_id).count()
+    if member_count > 1:
+        db_picklejar.points_per_voter = max(member_count - 1, 1)
+    else:
+        # If there is only one member (or none yet), fall back to 1 point
+        db_picklejar.points_per_voter = 1
+
     db_picklejar.status = "voting"
     db_picklejar.updated_at = datetime.utcnow()
     db.commit()
 
     return MessageResponse(
         message="Voting phase started",
-        detail=f"Members can now vote on {suggestion_count} suggestion(s)",
+        detail=(
+            f"Members can now vote on {suggestion_count} suggestion(s) with "
+            f"up to {db_picklejar.points_per_voter} point(s) each"
+        ),
     )
 
 
@@ -225,6 +249,93 @@ def complete_picklejar(picklejar_id: str, db: Session = Depends(get_db)):
     return MessageResponse(
         message="PickleJar completed",
         detail="Results are now available",
+    )
+
+
+@router.post("/{picklejar_id}/revert-to-setup", response_model=MessageResponse)
+def revert_to_setup(picklejar_id: str, db: Session = Depends(get_db)):
+    """
+    Revert PickleJar to the 'setup' phase.
+    """
+    db_picklejar = db.query(PickleJar).filter(PickleJar.id == picklejar_id).first()
+
+    if not db_picklejar:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"PickleJar with id {picklejar_id} not found",
+        )
+
+    if db_picklejar.status != "suggesting":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot revert to setup from status '{db_picklejar.status}'",
+        )
+
+    db_picklejar.status = "setup"
+    db_picklejar.updated_at = datetime.utcnow()
+    db.commit()
+
+    return MessageResponse(
+        message="Reverted to setup phase",
+        detail="PickleJar is back in setup mode",
+    )
+
+
+@router.post("/{picklejar_id}/revert-to-suggesting", response_model=MessageResponse)
+def revert_to_suggesting(picklejar_id: str, db: Session = Depends(get_db)):
+    """
+    Revert PickleJar to the 'suggesting' phase.
+    """
+    db_picklejar = db.query(PickleJar).filter(PickleJar.id == picklejar_id).first()
+
+    if not db_picklejar:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"PickleJar with id {picklejar_id} not found",
+        )
+
+    if db_picklejar.status != "voting":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot revert to suggesting from status '{db_picklejar.status}'",
+        )
+
+    db_picklejar.status = "suggesting"
+    db_picklejar.updated_at = datetime.utcnow()
+    db.commit()
+
+    return MessageResponse(
+        message="Reverted to suggesting phase",
+        detail="Members can submit suggestions again",
+    )
+
+
+@router.post("/{picklejar_id}/revert-to-voting", response_model=MessageResponse)
+def revert_to_voting(picklejar_id: str, db: Session = Depends(get_db)):
+    """
+    Revert PickleJar to the 'voting' phase.
+    """
+    db_picklejar = db.query(PickleJar).filter(PickleJar.id == picklejar_id).first()
+
+    if not db_picklejar:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"PickleJar with id {picklejar_id} not found",
+        )
+
+    if db_picklejar.status != "completed":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot revert to voting from status '{db_picklejar.status}'",
+        )
+
+    db_picklejar.status = "voting"
+    db_picklejar.updated_at = datetime.utcnow()
+    db.commit()
+
+    return MessageResponse(
+        message="Reverted to voting phase",
+        detail="Voting is reopened",
     )
 
 

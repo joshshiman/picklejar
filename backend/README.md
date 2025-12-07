@@ -87,7 +87,7 @@ The main container for a group decision session.
 - `id` (String): Unique short ID for URL
 - `title` (String): Name of the PickleJar
 - `description` (Text): Optional description
-- `points_per_voter` (Integer): Points each member can allocate
+- `points_per_voter` (Integer): Points each member can allocate (derived internally by the system; not user-configurable in the UI)
 - `max_suggestions_per_member` (Integer): Max suggestions per member
 - `suggestion_deadline` (DateTime): Optional deadline for suggestions
 - `voting_deadline` (DateTime): Optional deadline for voting
@@ -265,6 +265,8 @@ Content-Type: application/json
 }
 ```
 
+> Note: The backend enforces how many points a member can allocate. In the current product flow, this is **derived internally** (for example, based on the number of participants such as `n - 1`) rather than configured directly by the user when creating a PickleJar.
+
 #### Get Member's Votes
 ```http
 GET /api/votes/{picklejar_id}/votes/{member_id}
@@ -278,7 +280,7 @@ DELETE /api/votes/{picklejar_id}/votes/{member_id}
 ## PickleJar Workflow
 
 ### 1. Setup Phase
-- Host creates a PickleJar with settings
+- Host creates a PickleJar with minimal settings (e.g., title and optional description; voting power is derived internally)
 - Host shares the unique link (e.g., `picklejar.app/pj/abc123`)
 - Members join via the link by entering phone number
 - Host starts the suggesting phase

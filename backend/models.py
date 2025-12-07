@@ -48,7 +48,7 @@ class PickleJar(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Creator info
-    creator_phone = Column(String, nullable=False)
+    creator_phone = Column(String, nullable=True)
 
     # Relationships
     members = relationship(

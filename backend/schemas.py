@@ -9,7 +9,17 @@ from pydantic import BaseModel, Field, validator
 
 
 class PickleJarCreate(BaseModel):
-    """Schema for creating a new PickleJar"""
+    """Schema for creating a new PickleJar.
+
+    Note:
+        - `points_per_voter` is treated as an internal field and should not be
+          exposed as a user-configurable option in the UI. The application
+          code may derive this value automatically (for example, based on the
+          number of participants).
+        - `creator_phone` is optional in the current minimal flow and may be
+          omitted by clients that do not yet collect phone numbers at creation
+          time.
+    """
 
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
@@ -18,7 +28,7 @@ class PickleJarCreate(BaseModel):
     suggestion_deadline: Optional[datetime] = None
     voting_deadline: Optional[datetime] = None
     hangout_datetime: Optional[datetime] = None
-    creator_phone: str = Field(..., min_length=10, max_length=20)
+    creator_phone: Optional[str] = Field(None, min_length=10, max_length=20)
 
 
 class PickleJarUpdate(BaseModel):
@@ -47,7 +57,7 @@ class PickleJarResponse(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
-    creator_phone: str
+    creator_phone: Optional[str]
 
     class Config:
         from_attributes = True

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 from database import get_db
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -14,6 +14,35 @@ from schemas import (
 from sqlalchemy.orm import Session
 
 router = APIRouter()
+
+
+def _ensure_points_per_voter_initialized(
+    db: Session, picklejar: PickleJar
+) -> Tuple[PickleJar, int]:
+    """
+    Ensure points_per_voter is initialized for this PickleJar.
+
+    If points_per_voter is not explicitly set (<= 0 or None), derive it from the
+    current member count as (n - 1), where n is the number of members in this jar.
+    A minimum of 1 point per voter is enforced.
+
+    Returns a tuple of (updated_picklejar, effective_points_per_voter).
+    """
+    # If already set to a positive value, just use it.
+    if getattr(picklejar, "points_per_voter", 0) and picklejar.points_per_voter > 0:
+        return picklejar, picklejar.points_per_voter
+
+    # Derive from member count: n - 1 (minimum 1)
+    member_count = db.query(Member).filter(Member.picklejar_id == picklejar.id).count()
+    derived_points = max(member_count - 1, 1)
+
+    picklejar.points_per_voter = derived_points
+    picklejar.updated_at = datetime.utcnow()
+    db.add(picklejar)
+    db.commit()
+    db.refresh(picklejar)
+
+    return picklejar, derived_points
 
 
 @router.post(
@@ -31,6 +60,10 @@ def submit_votes(
     Submit votes for a PickleJar.
     Members can allocate their points across multiple suggestions.
     This replaces any existing votes from this member.
+
+    The allowed points per voter are automatically derived if not set:
+    - points_per_voter = max(n - 1, 1), where n is the number of members
+      in the PickleJar.
     """
     # Check if PickleJar exists and is in voting phase
     db_picklejar = db.query(PickleJar).filter(PickleJar.id == picklejar_id).first()
@@ -45,6 +78,11 @@ def submit_votes(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Cannot vote during '{db_picklejar.status}' phase",
         )
+
+    # Ensure points_per_voter is initialized (n - 1 rule) before validating votes
+    db_picklejar, effective_points_per_voter = _ensure_points_per_voter_initialized(
+        db, db_picklejar
+    )
 
     # Check if member exists
     db_member = (
@@ -62,10 +100,13 @@ def submit_votes(
     # Calculate total points being allocated
     total_points = sum(vote.points for vote in vote_data.votes)
 
-    if total_points > db_picklejar.points_per_voter:
+    if total_points > effective_points_per_voter:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Total points ({total_points}) exceeds allowed points per voter ({db_picklejar.points_per_voter})",
+            detail=(
+                f"Total points ({total_points}) exceeds allowed points per voter "
+                f"({effective_points_per_voter})"
+            ),
         )
 
     # Verify all suggestions exist and belong to this PickleJar
@@ -137,6 +178,9 @@ def get_member_votes(picklejar_id: str, member_id: str, db: Session = Depends(ge
     """
     Get a member's votes for a PickleJar.
     Only the member themselves can view their votes.
+
+    Ensures points_per_voter is initialized using the same n - 1 rule used
+    during vote submission, so remaining_points is consistent.
     """
     # Check if PickleJar exists
     db_picklejar = db.query(PickleJar).filter(PickleJar.id == picklejar_id).first()
@@ -145,6 +189,9 @@ def get_member_votes(picklejar_id: str, member_id: str, db: Session = Depends(ge
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"PickleJar with id {picklejar_id} not found",
         )
+
+    # Ensure points_per_voter is initialized so remaining_points is meaningful
+    db_picklejar, _ = _ensure_points_per_voter_initialized(db, db_picklejar)
 
     # Check if member exists
     db_member = (
