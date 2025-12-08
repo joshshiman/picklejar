@@ -17,17 +17,8 @@ export default function HomePage() {
     description: "",
   });
 
-  const [touched, setTouched] = useState<{ title: boolean }>({
-    title: false,
-  });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const titleError =
-    touched.title && !form.title.trim()
-      ? "Give this hangout a name so people know what they're joining."
-      : null;
 
   const handleChange =
     (field: keyof FormData) =>
@@ -36,13 +27,8 @@ export default function HomePage() {
       setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-  const handleBlur = (field: keyof typeof touched) => () => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setTouched((prev) => ({ ...prev, title: true }));
     setErrorMessage(null);
 
     if (!form.title.trim()) {
@@ -102,15 +88,9 @@ export default function HomePage() {
               placeholder="Type your answer here..."
               value={form.title}
               onChange={handleChange("title")}
-              onBlur={handleBlur("title")}
               className="w-full border-b-2 border-gray-200 bg-transparent py-2 text-2xl md:text-3xl text-gray-900 placeholder-gray-300 focus:border-gray-900 focus:outline-none transition-colors"
               autoFocus
             />
-            {titleError && (
-              <p className="text-sm text-red-600 bg-red-50 inline-block px-2 py-1 rounded">
-                ⚠️ {titleError}
-              </p>
-            )}
           </div>
 
           {/* Question 2 */}
@@ -149,7 +129,7 @@ export default function HomePage() {
           <div className="pt-8">
             <button
               type="submit"
-              disabled={isSubmitting || !!titleError}
+              disabled={isSubmitting || !form.title.trim()}
               className="inline-flex items-center justify-center rounded-md bg-gray-900 px-8 py-4 text-lg font-medium text-white shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
             >
               {isSubmitting ? "Creating..." : "Start PickleJar ↵"}

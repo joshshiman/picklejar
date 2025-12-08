@@ -8,22 +8,22 @@ const steps = [
   {
     title: "Create & Share",
     description:
-      "Start a new PickleJar for your event. You get a single link to share with your group. No accounts required for guests—they just need the link.",
+      "Spin up a fresh PickleJar, name the hangout, and blast the single share link. Everyone joins from that jar—no downloads, no accounts.",
   },
   {
-    title: "Collect Suggestions",
+    title: "Fill the Pickle Jar",
     description:
-      'Everyone tosses their ideas into the jar. "Thai food," "Bowling," "Movie night"—anything goes. You can set a deadline so people know when to act.',
+      "Every crew member drops pickles into the jar—Thai food, bowling, movie night, whatever. Add a pickle drop deadline so folks know when to toss theirs in.",
   },
   {
-    title: "Vote with Points",
+    title: "Vote on Pickles",
     description:
-      'Instead of a simple "yes/no," everyone gets a budget of points. Spend them all on your favorite option, or spread them out to support multiple ideas.',
+      "When it's voting time, everyone gets a stash of pickle points. Pile them onto one favorite pickle or spread the love across a few contenders.",
   },
   {
-    title: "See the Winner",
+    title: "Crown the Winning Pickle",
     description:
-      "Once voting closes, the results are revealed instantly. The option with the most points wins. No arguments, just a decision.",
+      "When voting wraps, the jar crowns the top pickle instantly. Highest points wins and the group chat can finally chill.",
   },
 ];
 
@@ -38,7 +38,8 @@ export default function HowItWorksPage() {
             How it works
           </h1>
           <p className="text-xl text-gray-600 font-light">
-            Stop the group chat spiral. Make decisions in 4 simple steps.
+            Break the group chat spiral. Pick a plan in four pickle-powered
+            steps.
           </p>
         </div>
 

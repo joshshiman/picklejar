@@ -47,6 +47,12 @@ interface Result {
   is_winner: boolean;
 }
 
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=1600&q=80",
+];
+
 function classNames(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
@@ -72,6 +78,8 @@ export default function PickleJarPage() {
 
   const [isSharing, setIsSharing] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
+  const heroImage = HERO_IMAGES[heroImageIndex] ?? HERO_IMAGES[0];
 
   const shareUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -241,7 +249,7 @@ export default function PickleJarPage() {
       if (canShare) {
         await (navigator as any).share({
           title: picklejar?.title || "PickleJar",
-          text: "Join this PickleJar to suggest and vote on what to do.",
+          text: "Join this PickleJar to drop pickles and vote on what to do.",
           url: shareUrl,
         });
         setIsSharing(false);
@@ -279,6 +287,10 @@ export default function PickleJarPage() {
     }
   };
 
+  const cycleHeroImage = () => {
+    setHeroImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+  };
+
   const isLoading = !picklejar;
 
   const memberCount = members.length;
@@ -295,21 +307,21 @@ export default function PickleJarPage() {
 
     const labelMap: Record<PickleJarStatus, string> = {
       setup: "Not started",
-      suggesting: "Collecting suggestions",
+      suggesting: "Collecting pickles",
       voting: "Voting in progress",
       completed: "Completed",
       cancelled: "Cancelled",
     };
 
     return (
-      <div className="flex items-center gap-2">
+      <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-gray-700">
         <Circle
           className={classNames(
-            "h-3 w-3 fill-current",
-            isStarted ? "text-green-500" : "text-gray-300",
+            "h-2 w-2 fill-current",
+            isStarted ? "text-emerald-500" : "text-gray-300",
           )}
         />
-        <span className="text-sm text-gray-600 font-medium">
+        <span className="text-xs font-semibold tracking-wide uppercase">
           {labelMap[normalizedStatus]}
         </span>
       </div>
@@ -324,7 +336,9 @@ export default function PickleJarPage() {
     if (normalizedStatus === "setup" || normalizedStatus === "unknown") {
       return (
         <div className="mt-8 text-gray-600 text-lg font-light">
-          <p>Waiting for the host to start the suggestion phase.</p>
+          <p>
+            Waiting for the host to start the pickle jar (suggestion) phase.
+          </p>
         </div>
       );
     }
@@ -336,7 +350,7 @@ export default function PickleJarPage() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex flex-col">
                 <h2 className="text-2xl font-light text-gray-900">
-                  Suggestions
+                  Pickle Jar (pickles/suggestions)
                 </h2>
                 {picklejar.suggestion_deadline && (
                   <p className="text-sm font-medium text-red-600">
@@ -345,46 +359,55 @@ export default function PickleJarPage() {
                   </p>
                 )}
               </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Add New Card */}
               <Link
                 href={
                   memberId
                     ? `/jar/${id}/suggest?member_id=${memberId}`
                     : `/jar/${id}/suggest`
                 }
-                className="inline-flex items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-black hover:-translate-y-0.5 transition-all"
+                className="relative flex flex-col items-center justify-center min-h-[120px] rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-6 text-center transition-all group overflow-hidden hover:border-emerald-500/80 hover:bg-emerald-50/40"
               >
-                <span className="hidden sm:inline">+ New Suggestion</span>
-                <span className="sm:hidden">+ New</span>
-              </Link>
-            </div>
-
-            <div className="space-y-6">
-              {loadingSuggestions && (
-                <p className="text-gray-500">Loading suggestions…</p>
-              )}
-              {!loadingSuggestions && suggestions.length === 0 && (
-                <p className="mt-8 text-gray-500 italic">
-                  No suggestions yet. Be the first to add one.
-                </p>
-              )}
-              {suggestions.map((s) => (
-                <div
-                  key={s.id}
-                  className="border-b border-gray-100 pb-4 last:border-0"
-                >
-                  <h3 className="text-xl font-medium text-gray-900">
-                    {s.title}
-                  </h3>
-                  {s.description && (
-                    <p className="mt-1 text-gray-600">{s.description}</p>
-                  )}
-                  {s.location && (
-                    <p className="mt-2 text-sm text-gray-400">
-                      📍 {s.location}
-                    </p>
-                  )}
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(52,211,153,0.35),_transparent_55%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mb-2 group-hover:bg-emerald-500 group-hover:text-white transition-colors relative z-10">
+                  <span className="text-lg font-medium">+</span>
                 </div>
-              ))}
+                <span className="font-medium text-gray-900 relative z-10 group-hover:text-emerald-900">
+                  Drop a Pickle
+                </span>
+              </Link>
+
+              <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-4">
+                {loadingSuggestions && (
+                  <div className="text-gray-500 py-8 text-center">
+                    Loading pickles…
+                  </div>
+                )}
+
+                {suggestions.map((s) => (
+                  <div
+                    key={s.id}
+                    className="flex flex-col rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <h3 className="text-xl font-medium text-gray-900 mb-2">
+                      {s.title}
+                    </h3>
+                    {s.description && (
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-3">
+                        {s.description}
+                      </p>
+                    )}
+                    {s.location && (
+                      <p className="mt-auto text-xs font-medium text-gray-400 uppercase tracking-wide pt-2 border-t border-gray-50">
+                        📍 {s.location}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -415,7 +438,7 @@ export default function PickleJarPage() {
                     {m.has_suggested && (
                       <span
                         className="h-2 w-2 rounded-full bg-blue-500"
-                        title="Suggested"
+                        title="Dropped a pickle"
                       ></span>
                     )}
                   </div>
@@ -465,15 +488,15 @@ export default function PickleJarPage() {
 
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
-                On the ballot
+                Pickles on the ballot
               </h3>
               <div className="space-y-4">
                 {loadingSuggestions && (
-                  <p className="text-gray-500">Loading suggestions…</p>
+                  <p className="text-gray-500">Loading pickles…</p>
                 )}
                 {!loadingSuggestions && suggestions.length === 0 && (
                   <p className="text-gray-500 italic">
-                    No suggestions to vote on yet.
+                    No pickles to vote on yet.
                   </p>
                 )}
                 {suggestions.map((s) => (
@@ -523,7 +546,7 @@ export default function PickleJarPage() {
         <div className="mt-8 space-y-12">
           <div className="bg-emerald-50/50 border-l-4 border-emerald-500 p-8">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 mb-2">
-              Winner
+              Winning Pickle
             </h2>
             {loadingResults && (
               <p className="text-emerald-800">Loading results…</p>
@@ -539,7 +562,7 @@ export default function PickleJarPage() {
                   </p>
                 )}
                 <p className="text-lg font-medium text-emerald-700">
-                  {winner.total_points} points
+                  {winner.total_points} points • 🥒 Crowned pickle
                 </p>
               </>
             )}
@@ -551,7 +574,7 @@ export default function PickleJarPage() {
           <div>
             <div className="mb-6">
               <h3 className="text-2xl font-light text-gray-900">
-                Full breakdown
+                Pickle breakdown
               </h3>
             </div>
 
@@ -602,6 +625,8 @@ export default function PickleJarPage() {
     );
   };
 
+  const statusBadge = renderStatusBadge();
+
   return (
     <div className="min-h-screen bg-white px-6 py-12 pb-32 text-gray-900">
       <div className="mx-auto max-w-3xl">
@@ -611,14 +636,37 @@ export default function PickleJarPage() {
           </div>
         ) : (
           <>
+            <section className="mb-8">
+              <div className="group relative h-48 md:h-56 overflow-hidden rounded-3xl bg-gray-900/5">
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                  style={{ backgroundImage: `url(${heroImage})` }}
+                  role="img"
+                  aria-label="PickleJar hero banner"
+                />
+                <div className="pointer-events-none relative flex h-full flex-col justify-end bg-gradient-to-t from-black/40 via-black/10 to-transparent p-6 text-white">
+                  <p className="text-sm uppercase tracking-[0.2em] text-white/70">
+                    PickleJar vibe check
+                  </p>
+                  <h2 className="text-3xl font-semibold text-white">
+                    {picklejar?.title || "Your next plan, jarred up"}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={cycleHeroImage}
+                  className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-900 shadow-lg backdrop-blur focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 group-hover:opacity-100 opacity-0 transition-opacity duration-200"
+                >
+                  Shuffle banner ↻
+                </button>
+              </div>
+            </section>
             {/* Header: title, description, status, share/edit */}
-            <header className="mb-8 border-b border-gray-100 pb-8">
+            <header className="mb-8 border-b border-gray-100 pb-8 space-y-6">
+              {statusBadge && <div>{statusBadge}</div>}
               <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      {renderStatusBadge()}
-                    </div>
                     <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
                       {picklejar?.title || "Untitled PickleJar"}
                     </h1>
@@ -631,15 +679,6 @@ export default function PickleJarPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={handleShare}
-                    disabled={isSharing}
-                    className="inline-flex items-center justify-center rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors disabled:cursor-wait"
-                  >
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share
-                  </button>
                   <Link
                     href={`/jar/${id}/edit`}
                     className="inline-flex items-center justify-center rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors"

@@ -52,14 +52,23 @@ export default function SuggestPage() {
       );
       router.push(`/jar/${id}`);
     } catch (error) {
-      console.error("Failed to submit suggestion:", error);
-      addToast("Failed to submit suggestion. Please try again.", "error");
+      console.error("Failed to drop this pickle:", error);
+      addToast("Failed to drop this pickle. Please try again.", "error");
     }
   };
 
   return (
     <main className="min-h-screen bg-white px-6 py-12 text-gray-900 flex flex-col justify-center">
       <div className="mx-auto max-w-2xl w-full">
+        <div className="mb-8">
+          <button
+            type="button"
+            onClick={() => router.push(`/jar/${id}`)}
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            ← Back to the jar
+          </button>
+        </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
           {/* Question 1 */}
           <div className="space-y-4">
@@ -67,13 +76,14 @@ export default function SuggestPage() {
               htmlFor="title"
               className="block text-2xl md:text-3xl font-light text-gray-900"
             >
-              1. What's your idea? <span className="text-red-500">*</span>
+              1. What pickle are you dropping?{" "}
+              <span className="text-red-500">*</span>
             </label>
             <input
               id="title"
               type="text"
               placeholder="e.g. Thai Food, Bowling"
-              {...register("title", { required: "Title is required" })}
+              {...register("title", { required: "Pickle name is required" })}
               className="w-full border-b-2 border-gray-200 bg-transparent py-2 text-2xl md:text-3xl text-gray-900 placeholder-gray-300 focus:border-gray-900 focus:outline-none transition-colors"
               autoFocus
             />
@@ -90,14 +100,18 @@ export default function SuggestPage() {
               htmlFor="description"
               className="block text-2xl md:text-3xl font-light text-gray-900"
             >
-              2. Any details?{" "}
+              2. Any pickle details?{" "}
               <span className="text-lg text-gray-400 font-normal">
                 (Optional)
               </span>
             </label>
+            <p className="text-sm text-gray-500">
+              Share the why, any links, or constraints so people can evaluate it
+              quickly.
+            </p>
             <textarea
               id="description"
-              placeholder="Links, context, reasoning..."
+              placeholder="Links, context, reasoning for this pickle..."
               {...register("description")}
               className="w-full border-b-2 border-gray-200 bg-transparent py-2 text-xl md:text-2xl text-gray-900 placeholder-gray-300 focus:border-gray-900 focus:outline-none transition-colors resize-none"
               rows={1}
@@ -116,11 +130,15 @@ export default function SuggestPage() {
               htmlFor="location"
               className="block text-2xl md:text-3xl font-light text-gray-900"
             >
-              3. Where?{" "}
+              3. Where does this pickle happen?{" "}
               <span className="text-lg text-gray-400 font-normal">
                 (Optional)
               </span>
             </label>
+            <p className="text-sm text-gray-500">
+              Drop the neighborhood, venue, or link so everyone knows where to
+              meet or book.
+            </p>
             <input
               id="location"
               type="text"
@@ -135,7 +153,7 @@ export default function SuggestPage() {
               type="submit"
               className="inline-flex items-center justify-center rounded-md bg-gray-900 px-8 py-4 text-lg font-medium text-white shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all"
             >
-              Submit Suggestion ↵
+              Drop Pickle ↵
             </button>
           </div>
         </form>

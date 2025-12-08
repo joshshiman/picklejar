@@ -82,7 +82,7 @@ export default function EditPage() {
           },
         );
         setLastSaved({ title, description });
-        // Quietly update local state without full refresh or toast spam
+        addToast("Changes saved", "success");
       } catch (error) {
         console.error("Failed to auto-save:", error);
         addToast("Failed to save changes.", "error");
@@ -187,8 +187,8 @@ export default function EditPage() {
         <div className="space-y-16">
           {/* Section 1: Phase Management (Top Priority) */}
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-8">
-              Phase Management
+            <h2 className="text-2xl font-light text-gray-900 mb-8">
+              Pickle Phase Management
             </h2>
 
             <div className="relative border-l-2 border-gray-100 ml-3 space-y-12 pb-4">
@@ -197,7 +197,7 @@ export default function EditPage() {
                 <div
                   className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 transition-colors ${
                     normalizedStatus === "setup"
-                      ? "border-gray-900 bg-white ring-4 ring-gray-50"
+                      ? "border-gray-900 bg-gradient-to-r from-gray-900 from-50% to-white to-50% ring-4 ring-gray-50"
                       : ["suggesting", "voting", "completed"].includes(
                             normalizedStatus,
                           )
@@ -206,7 +206,7 @@ export default function EditPage() {
                   }`}
                 />
                 <h3
-                  className={`text-lg font-medium ${
+                  className={`text-xl font-light ${
                     normalizedStatus === "setup"
                       ? "text-gray-900"
                       : "text-gray-500"
@@ -224,7 +224,7 @@ export default function EditPage() {
                       onClick={() => handleAdvancePhase("start-suggesting")}
                       className="rounded-md bg-gray-900 px-6 py-2 text-sm font-medium text-white hover:bg-black transition-all shadow-sm"
                     >
-                      Start Suggesting →
+                      Start Pickle Drop →
                     </button>
                   </div>
                 )}
@@ -235,26 +235,26 @@ export default function EditPage() {
                 <div
                   className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 transition-colors ${
                     normalizedStatus === "suggesting"
-                      ? "border-gray-900 bg-white ring-4 ring-gray-50"
+                      ? "border-gray-900 bg-gradient-to-r from-gray-900 from-50% to-white to-50% ring-4 ring-gray-50"
                       : ["voting", "completed"].includes(normalizedStatus)
                         ? "border-gray-900 bg-gray-900"
                         : "border-gray-200 bg-white"
                   }`}
                 />
                 <h3
-                  className={`text-lg font-medium ${
+                  className={`text-xl font-light ${
                     normalizedStatus === "suggesting"
                       ? "text-gray-900"
                       : "text-gray-500"
                   }`}
                 >
-                  2. Suggesting
+                  2. Pickle Drop
                 </h3>
                 {normalizedStatus === "suggesting" && (
                   <div className="mt-4">
                     <p className="text-gray-600 mb-6 text-sm">
-                      Members are currently adding their ideas. Move to voting
-                      when you have enough options.
+                      Members are currently dropping their pickles into the jar.
+                      Move to voting once the jar feels full.
                     </p>
                     <div className="flex flex-row items-center justify-between gap-4">
                       <button
@@ -279,14 +279,14 @@ export default function EditPage() {
                 <div
                   className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 transition-colors ${
                     normalizedStatus === "voting"
-                      ? "border-gray-900 bg-white ring-4 ring-gray-50"
+                      ? "border-gray-900 bg-gradient-to-r from-gray-900 from-50% to-white to-50% ring-4 ring-gray-50"
                       : ["completed"].includes(normalizedStatus)
                         ? "border-gray-900 bg-gray-900"
                         : "border-gray-200 bg-white"
                   }`}
                 />
                 <h3
-                  className={`text-lg font-medium ${
+                  className={`text-xl font-light ${
                     normalizedStatus === "voting"
                       ? "text-gray-900"
                       : "text-gray-500"
@@ -307,7 +307,7 @@ export default function EditPage() {
                         }
                         className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
                       >
-                        ← Back to Suggestions
+                        ← Back to Pickle Drop
                       </button>
                       <button
                         onClick={() => handleAdvancePhase("complete")}
@@ -325,12 +325,12 @@ export default function EditPage() {
                 <div
                   className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 transition-colors ${
                     normalizedStatus === "completed"
-                      ? "border-gray-900 bg-white ring-4 ring-gray-50"
+                      ? "border-gray-900 bg-gradient-to-r from-gray-900 from-50% to-white to-50% ring-4 ring-gray-50"
                       : "border-gray-200 bg-white"
                   }`}
                 />
                 <h3
-                  className={`text-lg font-medium ${
+                  className={`text-xl font-light ${
                     normalizedStatus === "completed"
                       ? "text-gray-900"
                       : "text-gray-500"
@@ -360,7 +360,7 @@ export default function EditPage() {
           <div className="grid gap-12 md:grid-cols-2">
             <section>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-2xl font-light text-gray-900">
                   Event Details
                 </h2>
                 {saving && (
@@ -405,13 +405,13 @@ export default function EditPage() {
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
+              <h2 className="text-2xl font-light text-gray-900 mb-6">
                 Deadlines
               </h2>
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Suggestion Deadline
+                    Pickle Drop Deadline
                   </label>
                   <input
                     type="datetime-local"
@@ -429,13 +429,14 @@ export default function EditPage() {
                     }
                   />
                   <p className="text-xs text-gray-500">
-                    Optional. Automatically starts voting when reached.
+                    Optional. Automatically seals the pickle jar and starts
+                    voting when reached.
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Voting Deadline
+                    Pickle Voting Deadline
                   </label>
                   <input
                     type="datetime-local"
@@ -453,7 +454,8 @@ export default function EditPage() {
                     }
                   />
                   <p className="text-xs text-gray-500">
-                    Optional. Automatically completes the event when reached.
+                    Optional. Automatically crowns the winning pickle when
+                    reached.
                   </p>
                 </div>
               </div>

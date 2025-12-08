@@ -138,7 +138,7 @@ export default function VotePage() {
             Vote
           </h1>
           <p className="text-xl text-gray-600 font-light">
-            Distribute your points across the options you like best.
+            Distribute your points across the pickles you like best.
           </p>
         </header>
 
