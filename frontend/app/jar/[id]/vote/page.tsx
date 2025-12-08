@@ -133,13 +133,25 @@ export default function VotePage() {
   return (
     <main className="min-h-screen bg-white px-6 py-12 text-gray-900">
       <div className="mx-auto max-w-3xl">
-        <header className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
-            Vote
-          </h1>
-          <p className="text-xl text-gray-600 font-light">
-            Distribute your points across the pickles you like best.
-          </p>
+        <header className="mb-12 space-y-4">
+          <button
+            type="button"
+            onClick={() => router.push(`/jar/${id}`)}
+            className="group inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-900"
+          >
+            <span className="text-lg font-normal text-gray-400 transition-colors group-hover:text-gray-900">
+              ←
+            </span>
+            Back to jar
+          </button>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
+              Vote
+            </h1>
+            <p className="text-xl text-gray-600 font-light">
+              Distribute your points across the pickles you like best.
+            </p>
+          </div>
         </header>
 
         <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm py-6 border-b border-gray-100 mb-8">
