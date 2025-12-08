@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
+import { useToast } from "../../../components/ToastProvider";
 
 interface Suggestion {
   id: string;
@@ -27,6 +28,7 @@ export default function VotePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = params.id as string;
+  const { addToast } = useToast();
 
   const [picklejar, setPicklejar] = useState<PickleJar | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -105,7 +107,7 @@ export default function VotePage() {
     }
 
     if (!memberId) {
-      alert("You must join the PickleJar first.");
+      addToast("You must join the PickleJar first.", "error");
       router.push(`/jar/${id}`);
       return;
     }
@@ -122,7 +124,7 @@ export default function VotePage() {
       router.push(`/jar/${id}`);
     } catch (error) {
       console.error("Failed to submit votes:", error);
-      alert("Failed to submit votes. Please try again.");
+      addToast("Failed to submit votes. Please try again.", "error");
     }
   };
 

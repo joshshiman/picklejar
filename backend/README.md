@@ -290,9 +290,8 @@ DELETE /api/votes/{picklejar_id}/votes/{member_id}
 - Suggestions are anonymous at this point
 - Host can see how many members have suggested
 - Phase ends when:
-  - All members have suggested, OR
-  - Time deadline is reached, OR
-  - Host manually starts voting
+  - Host manually starts voting, OR
+  - Time deadline is reached (automatically transitions to voting if suggestions exist)
 
 ### 3. Voting Phase
 - Members allocate points across all suggestions
@@ -301,9 +300,8 @@ DELETE /api/votes/{picklejar_id}/votes/{member_id}
 - Can vote on their own suggestion
 - Votes are anonymous
 - Phase ends when:
-  - All members have voted, OR
-  - Time deadline is reached, OR
-  - Host manually completes the PickleJar
+  - Host manually completes the PickleJar, OR
+  - Time deadline is reached (automatically transitions to completed)
 
 ### 4. Results
 - The suggestion with the most points wins

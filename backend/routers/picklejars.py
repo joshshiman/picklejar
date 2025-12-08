@@ -61,10 +61,61 @@ def create_picklejar(picklejar: PickleJarCreate, db: Session = Depends(get_db)):
     return db_picklejar
 
 
+def _check_and_update_status(db_picklejar: PickleJar, db: Session):
+    """
+    Lazy check for deadline expiration.
+    Updates status if deadlines have passed.
+    """
+    now = datetime.utcnow()
+    changed = False
+
+    # Check suggestion deadline
+    if (
+        db_picklejar.status == "suggesting"
+        and db_picklejar.suggestion_deadline
+        and now > db_picklejar.suggestion_deadline
+    ):
+        # Check if there are any suggestions before advancing
+        suggestion_count = (
+            db.query(Suggestion)
+            .filter(Suggestion.picklejar_id == db_picklejar.id)
+            .count()
+        )
+
+        # Only advance if there are suggestions (otherwise we can't calculate points)
+        if suggestion_count > 0:
+            # Derive points_per_voter logic (same as start_voting_phase)
+            if suggestion_count > 1:
+                db_picklejar.points_per_voter = max(suggestion_count - 1, 1)
+            else:
+                db_picklejar.points_per_voter = 1
+
+            db_picklejar.status = "voting"
+            changed = True
+
+    # Check voting deadline
+    # Note: We check this even if we just transitioned to voting
+    if (
+        db_picklejar.status == "voting"
+        and db_picklejar.voting_deadline
+        and now > db_picklejar.voting_deadline
+    ):
+        db_picklejar.status = "completed"
+        changed = True
+
+    if changed:
+        db_picklejar.updated_at = now
+        db.commit()
+        db.refresh(db_picklejar)
+
+
 @router.get("/{picklejar_id}", response_model=PickleJarDetailResponse)
 def get_picklejar(picklejar_id: str, db: Session = Depends(get_db)):
     """
     Get a PickleJar by ID with member and suggestion counts.
+
+    Performs a lazy check on deadlines: if suggestion or voting deadlines
+    have passed, the status is automatically updated before returning.
     """
     db_picklejar = db.query(PickleJar).filter(PickleJar.id == picklejar_id).first()
 
@@ -73,6 +124,9 @@ def get_picklejar(picklejar_id: str, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"PickleJar with id {picklejar_id} not found",
         )
+
+    # Lazy check for deadlines
+    _check_and_update_status(db_picklejar, db)
 
     # Get counts
     members = db.query(Member).filter(Member.picklejar_id == picklejar_id).all()

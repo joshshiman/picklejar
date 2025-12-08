@@ -13,3 +13,18 @@ body {
     background: rgb(var(--background-rgb));
     min-height: 100vh;
 }
+
+@keyframes slideInFromBottom {
+    from {
+        transform: translateY(1.25rem);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.animate-in {
+    animation: slideInFromBottom 300ms ease-out forwards;
+}

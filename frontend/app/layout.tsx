@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
+import Image from "next/image";
+import { ToastProvider } from "./components/ToastProvider";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -17,29 +19,38 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <nav className="border-b border-gray-200 bg-white px-4 py-3">
-          <div className="mx-auto flex max-w-4xl items-center justify-between">
-            <Link href="/" className="text-lg font-bold text-gray-900">
-              Pickle Jar
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link
-                href="/how-it-works"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900"
-              >
-                How it works
+      <body className={`${inter.className} antialiased`}>
+        <ToastProvider>
+          <nav className="border-b border-gray-200 bg-white px-4 py-3">
+            <div className="mx-auto flex max-w-4xl items-center justify-between">
+              <Link href="/" className="flex items-center">
+                <Image
+                  src="/picklejar-logo.png"
+                  alt="PickleJar"
+                  width={150}
+                  height={40}
+                  className="h-10 w-auto object-contain"
+                  priority
+                />
               </Link>
-              <Link
-                href="/create"
-                className="rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black"
-              >
-                Create
-              </Link>
+              <div className="flex items-center gap-6">
+                <Link
+                  href="/how-it-works"
+                  className="text-sm font-medium text-gray-600 hover:text-gray-900"
+                >
+                  How it works
+                </Link>
+                <Link
+                  href="/"
+                  className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black"
+                >
+                  Create
+                </Link>
+              </div>
             </div>
-          </div>
-        </nav>
-        {children}
+          </nav>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

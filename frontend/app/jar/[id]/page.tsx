@@ -6,6 +6,7 @@ import axios from "axios";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Share2, Edit2, Circle, Check, Copy } from "lucide-react";
+import { useToast } from "../../components/ToastProvider";
 
 type PickleJarStatus =
   | "setup"
@@ -53,6 +54,7 @@ function classNames(...classes: Array<string | false | null | undefined>) {
 export default function PickleJarPage() {
   const params = useParams();
   const id = params.id as string;
+  const { addToast } = useToast();
 
   const [picklejar, setPicklejar] = useState<PickleJar | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
@@ -162,7 +164,20 @@ export default function PickleJarPage() {
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/api/picklejars/${id}/results`,
         );
-        const sorted = [...res.data].sort(
+
+        // Backend returns { picklejar, winner, all_suggestions, stats }
+        const allSuggestions = res.data.all_suggestions || [];
+        const winnerId = res.data.winner?.suggestion?.id;
+
+        const mappedResults: Result[] = allSuggestions.map((s: any) => ({
+          suggestion_id: s.id,
+          title: s.title,
+          description: s.description,
+          total_points: s.total_points,
+          is_winner: s.id === winnerId,
+        }));
+
+        const sorted = mappedResults.sort(
           (a: Result, b: Result) => b.total_points - a.total_points,
         );
         setResults(sorted);
@@ -241,6 +256,7 @@ export default function PickleJarPage() {
       ) {
         await navigator.clipboard.writeText(shareUrl);
         setCopyState("copied");
+        addToast("Link copied to clipboard!", "success");
         setTimeout(() => setCopyState("idle"), 2500);
       }
     } catch (error) {
@@ -255,9 +271,11 @@ export default function PickleJarPage() {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopyState("copied");
+      addToast("Link copied to clipboard!", "success");
       setTimeout(() => setCopyState("idle"), 2500);
     } catch (error) {
       console.error("Error copying link:", error);
+      addToast("Failed to copy link.", "error");
     }
   };
 
@@ -315,25 +333,28 @@ export default function PickleJarPage() {
       return (
         <div className="mt-8 grid gap-12 md:grid-cols-3">
           <div className="md:col-span-2">
-            <div className="flex items-baseline justify-between mb-6">
-              <h2 className="text-2xl font-light text-gray-900">Suggestions</h2>
-              {picklejar.suggestion_deadline && (
-                <p className="text-sm font-medium text-red-600">
-                  Ends {format(new Date(picklejar.suggestion_deadline), "PPp")}
-                </p>
-              )}
-            </div>
-
-            <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col">
+                <h2 className="text-2xl font-light text-gray-900">
+                  Suggestions
+                </h2>
+                {picklejar.suggestion_deadline && (
+                  <p className="text-sm font-medium text-red-600">
+                    Ends{" "}
+                    {format(new Date(picklejar.suggestion_deadline), "PPp")}
+                  </p>
+                )}
+              </div>
               <Link
                 href={
                   memberId
                     ? `/jar/${id}/suggest?member_id=${memberId}`
                     : `/jar/${id}/suggest`
                 }
-                className="inline-flex items-center justify-center rounded-md bg-gray-900 px-6 py-3 text-base font-medium text-white shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all"
+                className="inline-flex items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-black hover:-translate-y-0.5 transition-all"
               >
-                + Add a suggestion
+                <span className="hidden sm:inline">+ New Suggestion</span>
+                <span className="sm:hidden">+ New</span>
               </Link>
             </div>
 
@@ -342,7 +363,7 @@ export default function PickleJarPage() {
                 <p className="text-gray-500">Loading suggestions…</p>
               )}
               {!loadingSuggestions && suggestions.length === 0 && (
-                <p className="text-gray-500 italic">
+                <p className="mt-8 text-gray-500 italic">
                   No suggestions yet. Be the first to add one.
                 </p>
               )}
@@ -377,9 +398,19 @@ export default function PickleJarPage() {
                   key={m.id}
                   className="flex items-center justify-between text-sm text-gray-700"
                 >
-                  <span>
-                    {m.id === memberId ? "Me" : m.display_name || "Anonymous"}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-xs font-medium text-gray-500">
+                      {(m.id === memberId
+                        ? "Me"
+                        : m.display_name || "Anonymous"
+                      )
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
+                    <span>
+                      {m.id === memberId ? "Me" : m.display_name || "Anonymous"}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     {m.has_suggested && (
                       <span
@@ -429,12 +460,6 @@ export default function PickleJarPage() {
                 className="inline-flex items-center justify-center rounded-md bg-gray-900 px-6 py-3 text-base font-medium text-white shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all"
               >
                 Go to voting ↵
-              </Link>
-              <Link
-                href={`/jar/${id}/results`}
-                className="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-6 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 transition-colors"
-              >
-                View live results
               </Link>
             </div>
 
@@ -524,16 +549,10 @@ export default function PickleJarPage() {
           </div>
 
           <div>
-            <div className="flex items-center justify-between gap-2 mb-6">
+            <div className="mb-6">
               <h3 className="text-2xl font-light text-gray-900">
                 Full breakdown
               </h3>
-              <Link
-                href={`/jar/${id}/results`}
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 underline"
-              >
-                Detailed view
-              </Link>
             </div>
 
             <div className="space-y-2">
@@ -584,7 +603,7 @@ export default function PickleJarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white px-6 py-12 text-gray-900">
+    <div className="min-h-screen bg-white px-6 py-12 pb-32 text-gray-900">
       <div className="mx-auto max-w-3xl">
         {isLoading ? (
           <div className="p-6">
@@ -593,7 +612,7 @@ export default function PickleJarPage() {
         ) : (
           <>
             {/* Header: title, description, status, share/edit */}
-            <header className="mb-12">
+            <header className="mb-8 border-b border-gray-100 pb-8">
               <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -673,26 +692,26 @@ export default function PickleJarPage() {
             )}
 
             {/* Share Link Footer */}
-            <div className="mt-16 border-t border-gray-100 pt-8 text-center">
-              <p className="mb-4 text-sm text-gray-500">
-                Share this link with your group
-              </p>
-              <div className="mx-auto flex items-center justify-center gap-2 rounded-md bg-gray-50 p-1 pr-2 w-fit border border-gray-200">
-                <div className="px-3 py-1 text-sm text-gray-600 font-mono max-w-[200px] sm:max-w-md truncate">
-                  {shareUrl.replace(/^https?:\/\//, "")}
+            <div className="fixed bottom-0 left-0 right-0 border-t border-gray-100 bg-white/95 backdrop-blur-sm p-4 text-center z-50">
+              <div className="mx-auto max-w-3xl flex flex-col sm:flex-row items-center justify-center gap-4">
+                <p className="text-sm text-gray-500">Share with your group:</p>
+                <div className="flex items-center justify-center gap-2 rounded-md bg-gray-50 p-1 pr-2 w-fit border border-gray-200">
+                  <div className="px-3 py-1 text-sm text-gray-600 font-mono max-w-[200px] sm:max-w-md truncate">
+                    {shareUrl.replace(/^https?:\/\//, "")}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="inline-flex items-center justify-center rounded bg-white px-2 py-1 text-xs font-medium text-gray-900 shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
+                    title="Copy link"
+                  >
+                    {copyState === "copied" ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="inline-flex items-center justify-center rounded bg-white px-2 py-1 text-xs font-medium text-gray-900 shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
-                  title="Copy link"
-                >
-                  {copyState === "copied" ? (
-                    <Check className="h-3 w-3" />
-                  ) : (
-                    <Copy className="h-3 w-3" />
-                  )}
-                </button>
               </div>
             </div>
           </>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
+import { useToast } from "../../../components/ToastProvider";
 
 type SuggestionFormData = {
   title: string;
@@ -21,6 +22,7 @@ export default function SuggestPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = params.id as string;
+  const { addToast } = useToast();
 
   const [memberId, setMemberId] = useState<string | null>(null);
 
@@ -38,7 +40,7 @@ export default function SuggestPage() {
 
   const onSubmit = async (data: SuggestionFormData) => {
     if (!memberId) {
-      alert("You must join the PickleJar first.");
+      addToast("You must join the PickleJar first.", "error");
       router.push(`/jar/${id}`);
       return;
     }
@@ -51,7 +53,7 @@ export default function SuggestPage() {
       router.push(`/jar/${id}`);
     } catch (error) {
       console.error("Failed to submit suggestion:", error);
-      alert("Failed to submit suggestion. Please try again.");
+      addToast("Failed to submit suggestion. Please try again.", "error");
     }
   };
 

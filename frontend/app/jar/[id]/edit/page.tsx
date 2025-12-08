@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { format } from "date-fns";
 import Link from "next/link";
+import { useToast } from "../../../components/ToastProvider";
 
 type PickleJarStatus =
   | "setup"
@@ -25,6 +26,7 @@ interface PickleJar {
 export default function EditPage() {
   const params = useParams();
   const id = params.id as string;
+  const { addToast } = useToast();
 
   const [picklejar, setPicklejar] = useState<PickleJar | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +35,10 @@ export default function EditPage() {
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [lastSaved, setLastSaved] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
 
   useEffect(() => {
     const fetchPickleJar = async () => {
@@ -43,6 +49,10 @@ export default function EditPage() {
         setPicklejar(res.data);
         setTitle(res.data.title);
         setDescription(res.data.description || "");
+        setLastSaved({
+          title: res.data.title,
+          description: res.data.description || "",
+        });
       } catch (error) {
         console.error("Failed to fetch PickleJar:", error);
       } finally {
@@ -52,30 +62,37 @@ export default function EditPage() {
     fetchPickleJar();
   }, [id]);
 
-  const handleSaveDetails = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/picklejars/${id}`,
-        {
-          title,
-          description: description || null,
-        },
-      );
-      // Refresh local state
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/picklejars/${id}`,
-      );
-      setPicklejar(res.data);
-      alert("Saved successfully!");
-    } catch (error) {
-      console.error("Failed to update PickleJar:", error);
-      alert("Failed to save changes.");
-    } finally {
-      setSaving(false);
+  // Auto-save effect
+  useEffect(() => {
+    if (!lastSaved) return;
+
+    // Don't save if nothing changed
+    if (title === lastSaved.title && description === lastSaved.description) {
+      return;
     }
-  };
+
+    const timer = setTimeout(async () => {
+      setSaving(true);
+      try {
+        await axios.patch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/picklejars/${id}`,
+          {
+            title,
+            description: description || null,
+          },
+        );
+        setLastSaved({ title, description });
+        // Quietly update local state without full refresh or toast spam
+      } catch (error) {
+        console.error("Failed to auto-save:", error);
+        addToast("Failed to save changes.", "error");
+      } finally {
+        setSaving(false);
+      }
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(timer);
+  }, [title, description, id, lastSaved, addToast]);
 
   const handleAdvancePhase = async (
     endpoint:
@@ -95,9 +112,10 @@ export default function EditPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/picklejars/${id}`,
       );
       setPicklejar(res.data);
+      addToast("Phase updated successfully", "success");
     } catch (error) {
       console.error(`Failed to ${endpoint}:`, error);
-      alert(`Failed to change phase.`);
+      addToast("Failed to change phase.", "error");
     }
   };
 
@@ -128,8 +146,10 @@ export default function EditPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/picklejars/${id}`,
       );
       setPicklejar(res.data);
+      addToast("Deadline updated", "success");
     } catch (error) {
       console.error("Failed to update deadline:", error);
+      addToast("Failed to update deadline", "error");
     }
   };
 
@@ -164,140 +184,192 @@ export default function EditPage() {
           </p>
         </header>
 
-        <div className="space-y-12">
+        <div className="space-y-16">
           {/* Section 1: Phase Management (Top Priority) */}
-          <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-            <div className="mb-10">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Phase Management
-              </h2>
-              <p className="text-sm text-gray-500">
-                Move your event through these stages.
-              </p>
-            </div>
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-8">
+              Phase Management
+            </h2>
 
-            {/* Visual Stepper */}
-            <div className="relative flex items-center justify-between mb-12 px-2">
-              {/* Connecting Line */}
-              <div className="absolute left-0 top-4 h-0.5 w-full -translate-y-1/2 bg-gray-100" />
-
-              {/* Steps */}
-              {["setup", "suggesting", "voting", "completed"].map(
-                (step, index) => {
-                  const isActive = normalizedStatus === step;
-                  const phases = ["setup", "suggesting", "voting", "completed"];
-                  const currentIndex = phases.indexOf(normalizedStatus);
-                  const isPast = currentIndex > index;
-
-                  return (
-                    <div
-                      key={step}
-                      className="relative z-10 flex flex-col items-center gap-3"
-                    >
-                      <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300 ${
-                          isActive
-                            ? "border-gray-900 bg-gray-900 text-white scale-110 shadow-md"
-                            : isPast
-                              ? "border-gray-900 bg-white text-gray-900"
-                              : "border-gray-200 bg-white text-gray-300"
-                        }`}
-                      >
-                        {isPast ? (
-                          <span className="text-xs font-bold">✓</span>
-                        ) : (
-                          <span className="text-xs font-bold">{index + 1}</span>
-                        )}
-                      </div>
-                      <span
-                        className={`text-[10px] font-bold uppercase tracking-widest ${
-                          isActive ? "text-gray-900" : "text-gray-400"
-                        }`}
-                      >
-                        {step}
-                      </span>
-                    </div>
-                  );
-                },
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col items-center justify-center gap-4 border-t border-gray-100 pt-8">
-              {normalizedStatus === "setup" && (
-                <div className="text-center">
-                  <p className="mb-6 text-sm text-gray-600">
-                    Your PickleJar is created. When you&apos;re ready for people
-                    to add ideas, start the suggesting phase.
-                  </p>
-                  <button
-                    onClick={() => handleAdvancePhase("start-suggesting")}
-                    className="rounded-full bg-gray-900 px-8 py-3 text-sm font-medium text-white hover:bg-black transition-all hover:-translate-y-0.5 shadow-lg"
-                  >
-                    Start Suggesting →
-                  </button>
-                </div>
-              )}
-
-              {normalizedStatus === "suggesting" && (
-                <div className="flex w-full items-center justify-between">
-                  <button
-                    onClick={() => handleAdvancePhase("revert-to-setup")}
-                    className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
-                  >
-                    ← Back to Setup
-                  </button>
-                  <div className="text-right">
+            <div className="relative border-l-2 border-gray-100 ml-3 space-y-12 pb-4">
+              {/* Setup Phase */}
+              <div className="relative pl-8">
+                <div
+                  className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 transition-colors ${
+                    normalizedStatus === "setup"
+                      ? "border-gray-900 bg-white ring-4 ring-gray-50"
+                      : ["suggesting", "voting", "completed"].includes(
+                            normalizedStatus,
+                          )
+                        ? "border-gray-900 bg-gray-900"
+                        : "border-gray-200 bg-white"
+                  }`}
+                />
+                <h3
+                  className={`text-lg font-medium ${
+                    normalizedStatus === "setup"
+                      ? "text-gray-900"
+                      : "text-gray-500"
+                  }`}
+                >
+                  1. Setup
+                </h3>
+                {normalizedStatus === "setup" && (
+                  <div className="mt-4">
+                    <p className="text-gray-600 mb-6 text-sm">
+                      Configure your event details below. When you&apos;re ready
+                      for members to join, move to the next phase.
+                    </p>
                     <button
-                      onClick={() => handleAdvancePhase("start-voting")}
-                      className="rounded-full bg-gray-900 px-8 py-3 text-sm font-medium text-white hover:bg-black transition-all hover:-translate-y-0.5 shadow-lg"
+                      onClick={() => handleAdvancePhase("start-suggesting")}
+                      className="rounded-md bg-gray-900 px-6 py-2 text-sm font-medium text-white hover:bg-black transition-all shadow-sm"
                     >
-                      Start Voting →
+                      Start Suggesting →
                     </button>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
-              {normalizedStatus === "voting" && (
-                <div className="flex w-full items-center justify-between">
-                  <button
-                    onClick={() => handleAdvancePhase("revert-to-suggesting")}
-                    className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
-                  >
-                    ← Back to Suggestions
-                  </button>
-                  <button
-                    onClick={() => handleAdvancePhase("complete")}
-                    className="rounded-full bg-gray-900 px-8 py-3 text-sm font-medium text-white hover:bg-black transition-all hover:-translate-y-0.5 shadow-lg"
-                  >
-                    Complete & Reveal →
-                  </button>
-                </div>
-              )}
+              {/* Suggesting Phase */}
+              <div className="relative pl-8">
+                <div
+                  className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 transition-colors ${
+                    normalizedStatus === "suggesting"
+                      ? "border-gray-900 bg-white ring-4 ring-gray-50"
+                      : ["voting", "completed"].includes(normalizedStatus)
+                        ? "border-gray-900 bg-gray-900"
+                        : "border-gray-200 bg-white"
+                  }`}
+                />
+                <h3
+                  className={`text-lg font-medium ${
+                    normalizedStatus === "suggesting"
+                      ? "text-gray-900"
+                      : "text-gray-500"
+                  }`}
+                >
+                  2. Suggesting
+                </h3>
+                {normalizedStatus === "suggesting" && (
+                  <div className="mt-4">
+                    <p className="text-gray-600 mb-6 text-sm">
+                      Members are currently adding their ideas. Move to voting
+                      when you have enough options.
+                    </p>
+                    <div className="flex flex-row items-center justify-between gap-4">
+                      <button
+                        onClick={() => handleAdvancePhase("revert-to-setup")}
+                        className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        ← Back to Setup
+                      </button>
+                      <button
+                        onClick={() => handleAdvancePhase("start-voting")}
+                        className="rounded-md bg-gray-900 px-6 py-2 text-sm font-medium text-white hover:bg-black transition-all shadow-sm"
+                      >
+                        Start Voting →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
-              {normalizedStatus === "completed" && (
-                <div className="text-center">
-                  <p className="mb-4 text-sm text-gray-600">
-                    Event is complete. Results are visible to everyone.
-                  </p>
-                  <button
-                    onClick={() => handleAdvancePhase("revert-to-voting")}
-                    className="text-sm font-medium text-gray-500 hover:text-gray-900 underline"
-                  >
-                    Reopen Voting
-                  </button>
-                </div>
-              )}
+              {/* Voting Phase */}
+              <div className="relative pl-8">
+                <div
+                  className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 transition-colors ${
+                    normalizedStatus === "voting"
+                      ? "border-gray-900 bg-white ring-4 ring-gray-50"
+                      : ["completed"].includes(normalizedStatus)
+                        ? "border-gray-900 bg-gray-900"
+                        : "border-gray-200 bg-white"
+                  }`}
+                />
+                <h3
+                  className={`text-lg font-medium ${
+                    normalizedStatus === "voting"
+                      ? "text-gray-900"
+                      : "text-gray-500"
+                  }`}
+                >
+                  3. Voting
+                </h3>
+                {normalizedStatus === "voting" && (
+                  <div className="mt-4">
+                    <p className="text-gray-600 mb-6 text-sm">
+                      Members are casting their votes. Complete the event to
+                      reveal the winner.
+                    </p>
+                    <div className="flex flex-row items-center justify-between gap-4">
+                      <button
+                        onClick={() =>
+                          handleAdvancePhase("revert-to-suggesting")
+                        }
+                        className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        ← Back to Suggestions
+                      </button>
+                      <button
+                        onClick={() => handleAdvancePhase("complete")}
+                        className="rounded-md bg-gray-900 px-6 py-2 text-sm font-medium text-white hover:bg-black transition-all shadow-sm"
+                      >
+                        Complete & Reveal →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Completed Phase */}
+              <div className="relative pl-8">
+                <div
+                  className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 transition-colors ${
+                    normalizedStatus === "completed"
+                      ? "border-gray-900 bg-white ring-4 ring-gray-50"
+                      : "border-gray-200 bg-white"
+                  }`}
+                />
+                <h3
+                  className={`text-lg font-medium ${
+                    normalizedStatus === "completed"
+                      ? "text-gray-900"
+                      : "text-gray-500"
+                  }`}
+                >
+                  4. Completed
+                </h3>
+                {normalizedStatus === "completed" && (
+                  <div className="mt-4">
+                    <p className="text-gray-600 mb-6 text-sm">
+                      The winner has been revealed. You can reopen voting if
+                      needed.
+                    </p>
+                    <button
+                      onClick={() => handleAdvancePhase("revert-to-voting")}
+                      className="text-sm font-medium text-gray-900 underline hover:text-gray-600"
+                    >
+                      Reopen Voting
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
 
           {/* Section 2: Details & Deadlines */}
           <div className="grid gap-12 md:grid-cols-2">
             <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Event Details
-              </h2>
-              <form onSubmit={handleSaveDetails} className="space-y-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Event Details
+                </h2>
+                {saving && (
+                  <span className="text-xs font-medium text-gray-400 animate-pulse">
+                    Saving...
+                  </span>
+                )}
+              </div>
+              <div className="space-y-6">
                 <div className="space-y-2">
                   <label
                     htmlFor="title"
@@ -329,15 +401,7 @@ export default function EditPage() {
                     rows={3}
                   />
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="inline-flex items-center justify-center rounded-md bg-gray-900 px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-black transition-colors disabled:opacity-50"
-                >
-                  {saving ? "Saving..." : "Save Changes"}
-                </button>
-              </form>
+              </div>
             </section>
 
             <section>
@@ -365,7 +429,7 @@ export default function EditPage() {
                     }
                   />
                   <p className="text-xs text-gray-500">
-                    Optional. Displayed to users during suggestion phase.
+                    Optional. Automatically starts voting when reached.
                   </p>
                 </div>
 
@@ -389,7 +453,7 @@ export default function EditPage() {
                     }
                   />
                   <p className="text-xs text-gray-500">
-                    Optional. Displayed to users during voting phase.
+                    Optional. Automatically completes the event when reached.
                   </p>
                 </div>
               </div>
