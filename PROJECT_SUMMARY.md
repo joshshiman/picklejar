@@ -44,11 +44,12 @@ picklejar/
 │   ├── README.md                # ✅ Backend documentation
 │   └── requirements.txt         # ✅ All Python dependencies
 │
-└── frontend/                     # Next.js Frontend
+└── frontend/
     ├── package.json             # ✅ Frontend dependencies
     ├── .env.example             # ✅ Frontend environment template
     ├── .gitignore               # ✅ Frontend-specific ignores
-    └── README.md                # ✅ Frontend documentation
+    ├── README.md                # ✅ Frontend documentation
+    └── app/                     # ✅ Next.js App Router (typeform entry + jar flows)
 
 ```
 
@@ -137,21 +138,31 @@ picklejar/
 - **Framework:** Next.js 14 (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
-- **State:** Zustand
 - **Forms:** React Hook Form
 - **HTTP:** Axios
 - **Icons:** Lucide React
 
-### Page Structure (To Be Built)
+### Current Page Structure
 ```
 app/
-├── page.tsx                    # Home/landing page
-├── create/page.tsx             # Create PickleJar form
-├── pj/[id]/
-│   ├── page.tsx               # Join/overview
-│   ├── suggest/page.tsx       # Submit suggestions
-│   ├── vote/page.tsx          # Vote with point allocation
-│   └── results/page.tsx       # View winner and results
+├── page.tsx
+├── globals.css
+├── layout.tsx
+├── how-it-works/
+│   └── page.tsx
+├── jar/
+│   ├── [id]/
+│   │   ├── page.tsx
+│   │   ├── edit/
+│   │   │   └── page.tsx
+│   │   ├── suggest/
+│   │   │   └── page.tsx
+│   │   ├── vote/
+│   │   │   └── page.tsx
+│   │   └── results/
+│   │       └── page.tsx
+├── components/
+│   └── ToastProvider.tsx
 ```
 
 ---

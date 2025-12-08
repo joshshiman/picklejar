@@ -281,7 +281,7 @@ DELETE /api/votes/{picklejar_id}/votes/{member_id}
 
 ### 1. Setup Phase
 - Host creates a PickleJar with minimal settings (e.g., title and optional description; voting power is derived internally)
-- Host shares the unique link (e.g., `picklejar.app/pj/abc123`)
+- Host shares the unique link (e.g., `picklejar.app/jar/abc123`)
 - Members join via the link by entering phone number
 - Host starts the suggesting phase
 

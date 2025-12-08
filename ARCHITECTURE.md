@@ -143,7 +143,7 @@ A comprehensive overview of the PickleJar system design, data flow, and technica
        │          - Optional deadlines
        ▼
        │  Status: setup
-       │  Unique link generated: /pj/abc123
+       │  Unique link generated: /jar/abc123
        │
 ┌──────▼───────┐
 │  2. INVITE   │  Host shares link with group
@@ -258,7 +258,7 @@ picklejar-api/
 │   User       │
 └──────┬───────┘
        │
-       │  Clicks link: /pj/abc123
+       │  Clicks link: /jar/abc123
        ▼
 ┌──────────────────┐
 │  Frontend        │
@@ -369,7 +369,7 @@ State Constraints:
     │                        │                       │◄──────────────────────┤
     │                        │  {id: "abc123", ...}  │  Return created rows  │
     │                        │◄──────────────────────┤                       │
-    │  Redirect to /pj/abc123│                       │                       │
+    │  Redirect to /jar/abc123│                       │                       │
     │◄───────────────────────┤                       │                       │
     │                        │                       │                       │
 ```
@@ -433,7 +433,7 @@ App
 │       ├── SettingsSection
 │       └── SubmitButton
 │
-├── PickleJarPage [/pj/:id]
+├── PickleJarPage [/jar/:id]
 │   ├── PickleJarHeader
 │   │   ├── Title
 │   │   ├── Status Badge

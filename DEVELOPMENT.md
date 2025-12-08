@@ -28,6 +28,14 @@ cd ..
 
 ### Daily Development
 
+**Terminal 1 - Backend (preferred via `./start.sh`):**
+```bash
+./start.sh
+```
+This script sets up the Python virtual environment, copies `.env` files, installs missing dependencies, and launches both the backend (`uvicorn`) and frontend (`npm run dev`) alongside each other.
+
+If you prefer manual control, continue using the two-terminal workflow:
+
 **Terminal 1 - Backend:**
 ```bash
 cd backend
@@ -66,14 +74,27 @@ picklejar/
 │   └── picklejar.db       # SQLite database (auto-created)
 │
 ├── frontend/               # Next.js frontend
-│   ├── app/               # Next.js App Router
-│   │   ├── page.tsx      # Home page
-│   │   ├── create/       # Create PickleJar
-│   │   └── pj/[id]/      # PickleJar pages
-│   ├── components/       # React components
-│   ├── lib/             # Utilities & API client
-│   ├── stores/          # State management
-│   └── package.json     # Node dependencies
+│   ├── app/               # Next.js App Router (typeform-style entry + feature routes)
+│   │   ├── page.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── how-it-works/
+│   │   │   └── page.tsx
+│   │   ├── jar/
+│   │   │   ├── [id]/
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── edit/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── results/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── suggest/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── vote/
+│   │   │   │       └── page.tsx
+│   │   └── components/
+│   │       └── ToastProvider.tsx
+│   ├── public/
+│   └── package.json
 │
 ├── README.md            # Main project documentation
 └── DEVELOPMENT.md       # This file
