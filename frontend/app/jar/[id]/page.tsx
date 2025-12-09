@@ -5,7 +5,15 @@ import { useParams } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Share2, Edit2, Circle, Check, Copy } from "lucide-react";
+import { Edit2, Circle, Check, Copy } from "lucide-react";
+import {
+  MapContainer,
+  CircleMarker,
+  Popup,
+  TileLayer,
+  useMap,
+} from "react-leaflet";
+import L, { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import { useToast } from "../../components/ToastProvider";
 
 type PickleJarStatus =
@@ -55,6 +63,126 @@ const HERO_IMAGES = [
 
 function classNames(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+const DEFAULT_CENTER: LatLngExpression = [37.0902, -95.7129];
+
+if (typeof window !== "undefined") {
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl:
+      "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  });
+}
+
+function parseLocationToLatLng(
+  location?: string | null,
+): [number, number] | null {
+  if (!location) return null;
+  const parts = location.split(",").map((part) => part.trim());
+  if (parts.length < 2) return null;
+  const lat = Number(parts[0]);
+  const lng = Number(parts[1]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  return [lat, lng];
+}
+
+function MapViewport({
+  center,
+  bounds,
+}: {
+  center: LatLngExpression;
+  bounds?: LatLngBoundsExpression | null;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (bounds) {
+      map.fitBounds(bounds, { padding: [24, 24] });
+    } else {
+      map.setView(center);
+    }
+  }, [map, center, bounds]);
+
+  return null;
+}
+
+function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
+  const markers = useMemo(
+    () =>
+      suggestions
+        .map((suggestion) => ({
+          suggestion,
+          coords: parseLocationToLatLng(suggestion.location),
+        }))
+        .filter(
+          (
+            item,
+          ): item is { suggestion: Suggestion; coords: [number, number] } =>
+            Array.isArray(item.coords),
+        ),
+    [suggestions],
+  );
+
+  const center: LatLngExpression = markers[0]?.coords ?? DEFAULT_CENTER;
+  const zoom = markers.length ? 11 : 3;
+
+  const bounds: LatLngBoundsExpression | null = useMemo(() => {
+    if (markers.length > 1) {
+      return markers
+        .slice(1)
+        .reduce(
+          (acc, { coords }) => acc.extend(coords),
+          L.latLngBounds(markers[0].coords, markers[0].coords),
+        );
+    }
+    return null;
+  }, [markers]);
+
+  return (
+    <div className="mt-6 overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        scrollWheelZoom={false}
+        className="h-56 w-full"
+        style={{ filter: "hue-rotate(-8deg) saturate(1.1)" }}
+      >
+        <MapViewport center={center} bounds={bounds} />
+        <TileLayer
+          attribution={
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors • &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          }
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        />
+        {markers.map(({ suggestion, coords }) => (
+          <CircleMarker
+            key={suggestion.id}
+            center={coords}
+            radius={10}
+            pathOptions={{
+              color: "#059669",
+              fillColor: "#34d399",
+              fillOpacity: 0.9,
+            }}
+          >
+            <Popup>
+              <p className="text-sm font-semibold text-gray-900">
+                {suggestion.title}
+              </p>
+              {suggestion.location && (
+                <p className="mt-1 text-xs text-gray-600">
+                  {suggestion.location}
+                </p>
+              )}
+            </Popup>
+          </CircleMarker>
+        ))}
+      </MapContainer>
+    </div>
+  );
 }
 
 export default function PickleJarPage() {
@@ -445,6 +573,13 @@ export default function PickleJarPage() {
                 </li>
               ))}
             </ul>
+            <div className="mt-6">
+              {loadingSuggestions ? (
+                <div className="h-56 rounded-2xl border border-dashed border-gray-200 bg-gray-50 animate-pulse" />
+              ) : (
+                <PickleMap suggestions={suggestions} />
+              )}
+            </div>
           </div>
         </div>
       );
@@ -534,6 +669,13 @@ export default function PickleJarPage() {
                 </li>
               ))}
             </ul>
+            <div className="mt-6">
+              {loadingSuggestions ? (
+                <div className="h-56 rounded-2xl border border-dashed border-gray-200 bg-gray-50 animate-pulse" />
+              ) : (
+                <PickleMap suggestions={suggestions} />
+              )}
+            </div>
           </div>
         </div>
       );

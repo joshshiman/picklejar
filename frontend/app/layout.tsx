@@ -7,6 +7,10 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
+const FEEDBACK_FORM_URL =
+  process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL ??
+  "https://forms.gle/picklejar-feedback";
+
 export const metadata: Metadata = {
   title: "PickleJar",
   description: "Group Hangouts Made Easy",
@@ -50,6 +54,29 @@ export default function RootLayout({
             </div>
           </nav>
           {children}
+          <footer className="border-t border-gray-200 bg-white px-4 py-6">
+            <div className="mx-auto flex max-w-4xl flex-col items-center gap-3 text-sm text-gray-600 md:flex-row md:justify-between">
+              <p className="text-center text-gray-500 md:text-left">
+                Your privacy is important to us.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-4 md:justify-end">
+                <Link
+                  href="/privacy"
+                  className="underline decoration-gray-300 underline-offset-4 transition-colors hover:text-gray-900 hover:decoration-gray-900"
+                >
+                  Privacy Policy
+                </Link>
+                <a
+                  href={FEEDBACK_FORM_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline decoration-gray-300 underline-offset-4 transition-colors hover:text-gray-900 hover:decoration-gray-900"
+                >
+                  Share Feedback
+                </a>
+              </div>
+            </div>
+          </footer>
         </ToastProvider>
       </body>
     </html>
