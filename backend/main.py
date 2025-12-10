@@ -19,7 +19,7 @@ from config import settings
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS + [
+    allow_origins=settings.cors_origins_list + [
         "https://api.depickle.me",
         "https://depickle.me",
         "https://www.depickle.me",
