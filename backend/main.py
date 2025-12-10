@@ -20,7 +20,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:5173",
-        "https://depickle.me:8000",
+        "https://api.depickle.me",
+        "https://depickle.me",
+        "https://www.depickle.me",
     ],
     allow_credentials=True,
     allow_methods=["*"],
