@@ -12,18 +12,16 @@ class Settings(BaseSettings):
     # Application
     APP_NAME: str = "PickleJar API"
     APP_VERSION: str = "1.0.0"
-    DEBUG: bool = True
+    DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
 
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./picklejar.db")
 
-    # CORS
-    CORS_ORIGINS: list = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-    ]
+    # CORS - Allow production domains
+    CORS_ORIGINS: list = os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
+    ).split(",")
 
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
