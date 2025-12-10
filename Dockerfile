@@ -10,7 +10,10 @@ RUN .venv/bin/pip install -r requirements.txt
 
 FROM python:3.12.12-slim
 WORKDIR /app
-COPY --from=builder /app/.venv .venv/
+COPY --from=builder /app/.venv /app/.venv
 COPY backend/ .
 
-CMD ["/bin/sh", "-c", "/app/.venv/bin/uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Make sure the virtual environment is in PATH
+ENV PATH="/app/.venv/bin:$PATH"
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
