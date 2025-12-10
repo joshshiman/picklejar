@@ -142,12 +142,12 @@ function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
   }, [markers]);
 
   return (
-    <div className="mt-6 overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
       <MapContainer
         center={center}
         zoom={zoom}
         scrollWheelZoom={false}
-        className="h-56 w-full"
+        className="h-56 w-full pickle-map"
         style={{ filter: "hue-rotate(-8deg) saturate(1.1)" }}
       >
         <MapViewport center={center} bounds={bounds} />
@@ -573,13 +573,6 @@ export default function PickleJarPage() {
                 </li>
               ))}
             </ul>
-            <div className="mt-6">
-              {loadingSuggestions ? (
-                <div className="h-56 rounded-2xl border border-dashed border-gray-200 bg-gray-50 animate-pulse" />
-              ) : (
-                <PickleMap suggestions={suggestions} />
-              )}
-            </div>
           </div>
         </div>
       );
@@ -669,13 +662,6 @@ export default function PickleJarPage() {
                 </li>
               ))}
             </ul>
-            <div className="mt-6">
-              {loadingSuggestions ? (
-                <div className="h-56 rounded-2xl border border-dashed border-gray-200 bg-gray-50 animate-pulse" />
-              ) : (
-                <PickleMap suggestions={suggestions} />
-              )}
-            </div>
           </div>
         </div>
       );
@@ -766,6 +752,11 @@ export default function PickleJarPage() {
       </div>
     );
   };
+
+  const shouldShowMap =
+    normalizedStatus === "suggesting" ||
+    normalizedStatus === "voting" ||
+    normalizedStatus === "completed";
 
   const statusBadge = renderStatusBadge();
 
@@ -869,6 +860,15 @@ export default function PickleJarPage() {
               <>
                 {/* Phase-aware section */}
                 {renderPhaseContent()}
+                {shouldShowMap && (
+                  <div className="mt-12 border-t border-gray-100 pt-6">
+                    {loadingSuggestions ? (
+                      <div className="h-56 rounded-2xl border border-dashed border-gray-200 bg-gray-50 animate-pulse" />
+                    ) : (
+                      <PickleMap suggestions={suggestions} />
+                    )}
+                  </div>
+                )}
               </>
             )}
 

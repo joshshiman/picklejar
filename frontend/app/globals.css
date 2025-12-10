@@ -15,6 +15,51 @@ body {
     min-height: 100vh;
 }
 
+.pickle-map {
+    background-color: #fdfcf7;
+}
+
+.pickle-map .leaflet-tile-pane {
+    filter: saturate(1.05) hue-rotate(-4deg);
+}
+
+.pickle-map .leaflet-control-zoom {
+    border: none;
+    border-radius: 9999px;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.18);
+    overflow: hidden;
+}
+
+.pickle-map .leaflet-control-zoom a {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 1.5rem;
+}
+
+.pickle-map .leaflet-control-zoom a:hover {
+    background: linear-gradient(135deg, #0ea371, #047857);
+}
+
+.pickle-map .leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.75);
+    color: #6b7280;
+    border-radius: 9999px;
+    padding: 0.25rem 0.85rem;
+    font-size: 0.65rem;
+    font-weight: 500;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.pickle-map .leaflet-popup-content-wrapper,
+.pickle-map .leaflet-popup-tip {
+    background: #ffffff;
+    color: #064e3b;
+    box-shadow: 0 20px 45px rgba(6, 78, 59, 0.18);
+    border-radius: 1rem;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
 @keyframes slideInFromBottom {
     from {
         transform: translateY(1.25rem);
