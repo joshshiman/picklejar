@@ -4,12 +4,13 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 
-
 RUN python -m venv .venv
-COPY requirements.txt ./
+COPY backend/requirements.txt ./
 RUN .venv/bin/pip install -r requirements.txt
+
 FROM python:3.12.12-slim
 WORKDIR /app
 COPY --from=builder /app/.venv .venv/
-COPY . .
-CMD ["/app/.venv/bin/fastapi", "run"]
+COPY backend/ .
+
+CMD ["/bin/sh", "-c", "/app/.venv/bin/uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

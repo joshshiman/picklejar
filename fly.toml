@@ -3,7 +3,7 @@ app = "picklejar"
 primary_region = "iad"
 
 [build]
-  dockerfile = "backend/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [http_service]
   auto_start_machines = true
