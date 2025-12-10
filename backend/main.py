@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import members, picklejars, suggestions, votes
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)  # Disabled - tables created manually in Supabase
 
 app = FastAPI(
     title="PickleJar API",

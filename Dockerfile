@@ -1,19 +1,19 @@
-FROM python:3.12.12 AS builder
+FROM python:3.12.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
+
 WORKDIR /app
 
-RUN python -m venv .venv
-COPY backend/requirements.txt ./
-RUN .venv/bin/pip install -r requirements.txt
+# Install dependencies directly (no venv needed in container)
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-FROM python:3.12.12-slim
-WORKDIR /app
-COPY --from=builder /app/.venv /app/.venv
+# Copy application code
 COPY backend/ .
 
-# Make sure the virtual environment is in PATH
-ENV PATH="/app/.venv/bin:$PATH"
+# Expose port
+EXPOSE 8000
 
+# Run uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
