@@ -172,11 +172,11 @@ export default function VotePage() {
           </div>
         </div>
 
-        <div className="space-y-8 pb-24">
+        <div className="space-y-8 pb-24 max-h-[60vh] overflow-y-auto">
           {suggestions.map((suggestion) => (
             <div
               key={suggestion.id}
-              className="flex items-start justify-between gap-6 py-2"
+              className="flex items-start justify-between gap-6 py-2 px-3"
             >
               <div className="flex-1 pt-2">
                 <h3 className="text-2xl font-light text-gray-900">
