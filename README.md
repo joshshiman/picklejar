@@ -168,9 +168,18 @@ Add Twilio/SMTP secrets when enabling SMS/email features.
 
 ## 📬 Contributing
 
-- Feature branches (`feature/*`, `bugfix/*`), base `develop`/`main`.
-- Commit message style: `feat:`, `fix:`, `docs:`, `style:`.
-- Run lint/tests before pushing.
+1. **Branching model:** Fork the repo (or stay within the org) and branch from `develop` using `feature/*`, `bugfix/*`, or `docs/*` prefixes so reviewers can scan intent instantly.
+2. **Environment prep:** Follow [QUICKSTART.md](QUICKSTART.md) to run both services. Confirm API calls succeed (`/health`, `/docs`) before touching frontend flows.
+3. **Focused changes:** Keep PR scope tight. Touch backend routers/schemas and frontend hooks/components in the same change only when the feature truly spans both layers.
+4. **Quality gates:** Run the full lint/test suite before pushing. At minimum:
+   ```/dev/null/contributing.sh#L1-4
+   pytest
+   pytest --cov
+   npm run lint
+   npm run type-check
+   ```
+5. **Docs & fixtures:** Update `README.md`, `DEVELOPMENT.md`, or `API_EXAMPLES.md` whenever you alter behavior, endpoints, or CLI instructions. Add sample payloads/fixtures if your change needs new QA steps.
+6. **Pull request checklist:** Reference the issue, summarize user impact, note screenshots or recordings (especially for UX), and confirm tests/lints passed. Tag reviewers who own the affected area (backend, frontend, UX).
 
 ---
 
