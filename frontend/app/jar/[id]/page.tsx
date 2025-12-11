@@ -12,6 +12,7 @@ import {
   Popup,
   TileLayer,
   useMap,
+  ZoomControl,
 } from "react-leaflet";
 import L, { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import { useToast } from "../../components/ToastProvider";
@@ -65,7 +66,7 @@ function classNames(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-const DEFAULT_CENTER: LatLngExpression = [37.0902, -95.7129];
+const DEFAULT_CENTER: LatLngExpression = [43.6532, -79.3832];
 
 if (typeof window !== "undefined") {
   L.Icon.Default.mergeOptions({
@@ -92,9 +93,11 @@ function parseLocationToLatLng(
 function MapViewport({
   center,
   bounds,
+  zoom,
 }: {
   center: LatLngExpression;
   bounds?: LatLngBoundsExpression | null;
+  zoom?: number;
 }) {
   const map = useMap();
 
@@ -102,9 +105,9 @@ function MapViewport({
     if (bounds) {
       map.fitBounds(bounds, { padding: [24, 24] });
     } else {
-      map.setView(center);
+      map.setView(center, zoom ?? map.getZoom());
     }
-  }, [map, center, bounds]);
+  }, [map, center, bounds, zoom]);
 
   return null;
 }
@@ -127,7 +130,7 @@ function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
   );
 
   const center: LatLngExpression = markers[0]?.coords ?? DEFAULT_CENTER;
-  const zoom = markers.length ? 11 : 3;
+  const zoom = markers.length ? 12 : 13;
 
   const bounds: LatLngBoundsExpression | null = useMemo(() => {
     if (markers.length > 1) {
@@ -142,15 +145,17 @@ function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
   }, [markers]);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
       <MapContainer
         center={center}
         zoom={zoom}
         scrollWheelZoom={false}
+        zoomControl={false}
         className="h-56 w-full pickle-map"
         style={{ filter: "hue-rotate(-8deg) saturate(1.1)" }}
       >
-        <MapViewport center={center} bounds={bounds} />
+        <MapViewport center={center} bounds={bounds} zoom={zoom} />
+        <ZoomControl position="topright" />
         <TileLayer
           attribution={
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors • &copy; <a href="https://carto.com/attributions">CARTO</a>'
