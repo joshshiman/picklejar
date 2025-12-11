@@ -172,7 +172,7 @@ export default function VotePage() {
           </div>
         </div>
 
-        <div className="space-y-8 pb-24">
+        <div className="space-y-8 pb-24 max-h-[60vh] overflow-y-auto">
           {suggestions.map((suggestion) => (
             <div
               key={suggestion.id}
