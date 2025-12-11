@@ -4,6 +4,35 @@
 
 PickleJar is a full-stack democratic planning experience that lets friends plan hangouts without the noise of long group chats. Hosts spin up a PickleJar in seconds, automatically receive a single shareable link, and everyone—guest or host—uses that same link to join, suggest ideas, vote, and see the final result.
 
+<div align="center">
+  <a href="QUICKSTART.md"><img src="https://img.shields.io/badge/Quickstart-Run%20the%20stack-16a34a?style=for-the-badge&logo=gnometerminal&logoColor=white" alt="Quickstart badge" /></a>
+  <a href="API_EXAMPLES.md"><img src="https://img.shields.io/badge/API%20Recipes-curl%20helpers-0ea5e9?style=for-the-badge&logo=fastapi&logoColor=white" alt="API recipes badge" /></a>
+  <a href="DEVELOPMENT.md"><img src="https://img.shields.io/badge/Dev%20Guide-patterns%20%26%20workflow-f97316?style=for-the-badge&logo=github&logoColor=white" alt="Development guide badge" /></a>
+  <a href="PROJECT_SUMMARY.md"><img src="https://img.shields.io/badge/Roadmap-current%20focus-9333ea?style=for-the-badge&logo=notion&logoColor=white" alt="Roadmap badge" /></a>
+</div>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-MVP%20polish%20in%20progress-84cc16?style=flat-square" alt="Status badge" />
+  <img src="https://img.shields.io/badge/Backend-FastAPI%20%2B%20SQLAlchemy-2563eb?style=flat-square" alt="Backend badge" />
+  <img src="https://img.shields.io/badge/Frontend-Next.js%2014%20%2B%20Tailwind-0f172a?style=flat-square&labelColor=0ea5e9" alt="Frontend badge" />
+  <img src="https://img.shields.io/badge/Tests-Pytest%20%7C%20ESLint-eab308?style=flat-square" alt="Tests badge" />
+</p>
+
+## ✨ Highlights
+- Single shared link keeps every participant on the same page through creation, suggestion, voting, and results.
+- Backed by FastAPI + SQLAlchemy with generated docs, health checks, and a clear migration path to Supabase/PostgreSQL.
+- Next.js 14 App Router frontend mirrors the product tone: lightweight, fast, and phone-friendly.
+- Automation helpers (`start.sh`, toast UX, local member persistence) make demos and onboarding painless.
+
+## 🔗 Quick Links
+| Need | Reference |
+| --- | --- |
+| Spin up the stack fast | [QUICKSTART.md](QUICKSTART.md) |
+| See end-to-end API calls | [API_EXAMPLES.md](API_EXAMPLES.md) |
+| Follow the day-to-day dev workflow | [DEVELOPMENT.md](DEVELOPMENT.md) |
+| Dive into architecture diagrams | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Align on UX voice and icons | [PickleJar_UX_Navigation_and_Icons.md](PickleJar_UX_Navigation_and_Icons.md) |
+
 ---
 
 ## 🧱 Current Architecture
