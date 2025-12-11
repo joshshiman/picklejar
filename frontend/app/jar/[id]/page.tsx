@@ -618,7 +618,7 @@ export default function PickleJarPage() {
               <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
                 Pickles on the ballot
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[40vh] overflow-y-auto">
                 {loadingSuggestions && (
                   <p className="text-gray-500">Loading pickles…</p>
                 )}
