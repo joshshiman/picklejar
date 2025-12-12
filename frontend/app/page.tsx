@@ -57,6 +57,12 @@ export default function HomePage() {
         throw new Error("Missing PickleJar ID in response.");
       }
 
+      try {
+        localStorage.setItem(`pj_creator_${picklejar.id}`, "true");
+      } catch (storageError) {
+        console.error("Failed to store jar creator flag:", storageError);
+      }
+
       router.push(`/jar/${picklejar.id}`);
     } catch (err: any) {
       console.error("Failed to create PickleJar:", err);

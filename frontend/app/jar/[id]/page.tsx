@@ -32,6 +32,7 @@ interface PickleJar {
   suggestion_deadline?: string | null;
   voting_deadline?: string | null;
   points_per_voter?: number;
+  creator_phone?: string | null;
 }
 
 interface Member {
@@ -80,6 +81,9 @@ const HERO_IMAGES = [
 function classNames(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
+
+const normalizePhone = (value?: string | null) =>
+  value ? value.replace(/[^+\d]/g, "") : "";
 
 const DEFAULT_CENTER: LatLngExpression = [43.6532, -79.3832];
 
@@ -269,6 +273,8 @@ export default function PickleJarPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [phone, setPhone] = useState("");
   const [memberId, setMemberId] = useState<string | null>(null);
+  const [memberPhone, setMemberPhone] = useState<string | null>(null);
+  const [isLocalCreator, setIsLocalCreator] = useState(false);
   const [isMember, setIsMember] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
@@ -299,6 +305,18 @@ export default function PickleJarPage() {
     if (s === "cancelled") return "cancelled";
     return "unknown";
   }, [picklejar?.status]);
+
+  const isHost = useMemo(() => {
+    if (!picklejar?.creator_phone || !memberPhone) return false;
+    return (
+      normalizePhone(picklejar.creator_phone) === normalizePhone(memberPhone)
+    );
+  }, [picklejar?.creator_phone, memberPhone]);
+
+  const canEdit = useMemo(
+    () => isHost || isLocalCreator,
+    [isHost, isLocalCreator],
+  );
 
   // Fetch core jar + members
   useEffect(() => {
@@ -334,7 +352,36 @@ export default function PickleJarPage() {
       setMemberId(storedMemberId);
       setIsMember(true);
     }
+
+    const creatorFlag = localStorage.getItem(`pj_creator_${id}`);
+    setIsLocalCreator(creatorFlag === "true");
   }, [id]);
+
+  useEffect(() => {
+    if (!memberId) {
+      setMemberPhone(null);
+      return;
+    }
+
+    const fetchMemberDetails = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/members/member/${memberId}`,
+        );
+        setMemberPhone(res.data.phone_number || null);
+      } catch (error: any) {
+        if (error?.response?.status === 404) {
+          localStorage.removeItem(`pj_member_${id}`);
+          setMemberId(null);
+          setIsMember(false);
+          setMemberPhone(null);
+        }
+        console.error("Failed to fetch member details:", error);
+      }
+    };
+
+    fetchMemberDetails();
+  }, [id, memberId]);
 
   // Fetch suggestions when in suggesting/voting/completed
   useEffect(() => {
@@ -416,6 +463,7 @@ export default function PickleJarPage() {
       );
       const newMemberId = joinRes.data.id;
       setMemberId(newMemberId);
+      setMemberPhone(joinRes.data.phone_number || null);
       localStorage.setItem(`pj_member_${id}`, newMemberId);
       setIsMember(true);
 
@@ -887,13 +935,15 @@ export default function PickleJarPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <Link
-                    href={`/jar/${id}/edit`}
-                    className="inline-flex items-center justify-center rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors"
-                  >
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Edit
-                  </Link>
+                  {canEdit && (
+                    <Link
+                      href={`/jar/${id}/edit`}
+                      className="inline-flex items-center justify-center rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors"
+                    >
+                      <Edit2 className="mr-2 h-4 w-4" />
+                      Edit
+                    </Link>
+                  )}
                 </div>
               </div>
             </header>
