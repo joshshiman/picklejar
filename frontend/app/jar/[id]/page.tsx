@@ -46,7 +46,22 @@ interface Suggestion {
   title: string;
   description?: string | null;
   location?: string | null;
+  structured_location?: Record<string, unknown> | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  map_bounds?: SuggestionMapBounds | null;
 }
+
+type SuggestionMapBounds = {
+  northeast: {
+    latitude: number;
+    longitude: number;
+  };
+  southwest: {
+    latitude: number;
+    longitude: number;
+  };
+};
 
 interface Result {
   suggestion_id: string;
@@ -90,6 +105,42 @@ function parseLocationToLatLng(
   return [lat, lng];
 }
 
+function getSuggestionCoordinates(
+  suggestion: Suggestion,
+): [number, number] | null {
+  if (
+    typeof suggestion.latitude === "number" &&
+    typeof suggestion.longitude === "number"
+  ) {
+    return [suggestion.latitude, suggestion.longitude];
+  }
+  return parseLocationToLatLng(suggestion.location);
+}
+
+function getSuggestionAddress(suggestion: Suggestion): string | undefined {
+  if (
+    suggestion.structured_location &&
+    typeof suggestion.structured_location === "object" &&
+    "address" in suggestion.structured_location
+  ) {
+    const structured = suggestion.structured_location as {
+      address?: string | null;
+    };
+    if (structured.address) {
+      return structured.address;
+    }
+  }
+  return suggestion.location ?? undefined;
+}
+
+function mapBoundsToLatLngBounds(mapBounds?: SuggestionMapBounds | null) {
+  if (!mapBounds) return null;
+  return L.latLngBounds(
+    [mapBounds.southwest.latitude, mapBounds.southwest.longitude],
+    [mapBounds.northeast.latitude, mapBounds.northeast.longitude],
+  );
+}
+
 function MapViewport({
   center,
   bounds,
@@ -118,13 +169,19 @@ function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
       suggestions
         .map((suggestion) => ({
           suggestion,
-          coords: parseLocationToLatLng(suggestion.location),
+          coords: getSuggestionCoordinates(suggestion),
+          address: getSuggestionAddress(suggestion),
+          bounds: mapBoundsToLatLngBounds(suggestion.map_bounds),
         }))
         .filter(
           (
             item,
-          ): item is { suggestion: Suggestion; coords: [number, number] } =>
-            Array.isArray(item.coords),
+          ): item is {
+            suggestion: Suggestion;
+            coords: [number, number];
+            address?: string;
+            bounds: ReturnType<typeof mapBoundsToLatLngBounds>;
+          } => Array.isArray(item.coords),
         ),
     [suggestions],
   );
@@ -133,14 +190,29 @@ function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
   const zoom = markers.length ? 12 : 13;
 
   const bounds: LatLngBoundsExpression | null = useMemo(() => {
+    if (!markers.length) {
+      return null;
+    }
+
+    const structuredBounds = markers
+      .map((marker) => marker.bounds)
+      .filter((b): b is L.LatLngBounds => Boolean(b));
+
+    if (structuredBounds.length) {
+      const [first, ...rest] = structuredBounds;
+      return rest.reduce((acc, curr) => acc.extend(curr), first.pad(0.05));
+    }
+
     if (markers.length > 1) {
       return markers
         .slice(1)
         .reduce(
           (acc, { coords }) => acc.extend(coords),
           L.latLngBounds(markers[0].coords, markers[0].coords),
-        );
+        )
+        .pad(0.05);
     }
+
     return null;
   }, [markers]);
 
@@ -162,7 +234,7 @@ function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
           }
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-        {markers.map(({ suggestion, coords }) => (
+        {markers.map(({ suggestion, coords, address }) => (
           <CircleMarker
             key={suggestion.id}
             center={coords}
@@ -177,10 +249,8 @@ function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
               <p className="text-sm font-semibold text-gray-900">
                 {suggestion.title}
               </p>
-              {suggestion.location && (
-                <p className="mt-1 text-xs text-gray-600">
-                  {suggestion.location}
-                </p>
+              {address && (
+                <p className="mt-1 text-xs text-gray-600">{address}</p>
               )}
             </Popup>
           </CircleMarker>

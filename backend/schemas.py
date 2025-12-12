@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
@@ -129,6 +129,13 @@ class SuggestionCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     location: Optional[str] = Field(None, max_length=200)
+    structured_location: Optional[Dict[str, Any]] = None
+    latitude: Optional[float] = Field(None, ge=-90, le=90)
+    longitude: Optional[float] = Field(None, ge=-180, le=180)
+    map_bounds: Optional[Dict[str, Any]] = None
+    geo_source: Optional[str] = Field(None, max_length=50)
+    location_confidence: Optional[int] = Field(None, ge=0, le=100)
+    location_last_verified_at: Optional[datetime] = None
     estimated_cost: Optional[str] = Field(
         None, pattern="^(\\$|\\$\\$|\\$\\$\\$|\\$\\$\\$\\$|Free)$"
     )
@@ -140,6 +147,13 @@ class SuggestionUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     location: Optional[str] = Field(None, max_length=200)
+    structured_location: Optional[Dict[str, Any]] = None
+    latitude: Optional[float] = Field(None, ge=-90, le=90)
+    longitude: Optional[float] = Field(None, ge=-180, le=180)
+    map_bounds: Optional[Dict[str, Any]] = None
+    geo_source: Optional[str] = Field(None, max_length=50)
+    location_confidence: Optional[int] = Field(None, ge=0, le=100)
+    location_last_verified_at: Optional[datetime] = None
     estimated_cost: Optional[str] = Field(
         None, pattern="^(\\$|\\$\\$|\\$\\$\\$|\\$\\$\\$\\$|Free)$"
     )
@@ -153,6 +167,13 @@ class SuggestionResponse(BaseModel):
     title: str
     description: Optional[str]
     location: Optional[str]
+    structured_location: Optional[Dict[str, Any]]
+    latitude: Optional[float]
+    longitude: Optional[float]
+    map_bounds: Optional[Dict[str, Any]]
+    geo_source: Optional[str]
+    location_confidence: Optional[int]
+    location_last_verified_at: Optional[datetime]
     estimated_cost: Optional[str]
     is_active: bool
     created_at: datetime
