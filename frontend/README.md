@@ -55,7 +55,11 @@ Set `.env.local`:
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_APP_NAME=PickleJar
 NEXT_PUBLIC_SMS_VERIFICATION_ENABLED=false
+NEXT_PUBLIC_MAPBOX_TOKEN=pk.yourPublicTokenFromMapbox
+NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=false
 ```
+
+Set `NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=true` locally when you want to exercise the Mapbox-powered location picker on `/jar/[id]/suggest`. That picker also requires `NEXT_PUBLIC_MAPBOX_TOKEN` to be present; the frontend only sends the public token and the backend remains the source of truth for structured location columns.
 
 ---
 

@@ -20,9 +20,9 @@ class Settings(BaseSettings):
     # CORS - Allow production domains
     CORS_ORIGINS: str = os.getenv(
         "CORS_ORIGINS",
-        "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
+        "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173",
     )
-    
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS_ORIGINS string into a list"""
@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     RATE_LIMIT_ENABLED: bool = False
     RATE_LIMIT_REQUESTS: int = 100
     RATE_LIMIT_PERIOD: int = 60  # seconds
+
+    # Feature Flags
+    ENABLE_STRUCTURED_LOCATION: bool = (
+        os.getenv("ENABLE_STRUCTURED_LOCATION", "false").lower() == "true"
+    )
 
     class Config:
         env_file = ".env"
