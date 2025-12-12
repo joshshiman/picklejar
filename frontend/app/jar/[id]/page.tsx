@@ -179,7 +179,7 @@ function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
           ): item is {
             suggestion: Suggestion;
             coords: [number, number];
-            address?: string;
+            address: string | undefined;
             bounds: ReturnType<typeof mapBoundsToLatLngBounds>;
           } => Array.isArray(item.coords),
         ),
