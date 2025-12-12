@@ -620,14 +620,14 @@ export default function PickleJarPage() {
 
   const renderPhaseContent = () => {
     if (!picklejar) {
-      return <div className="mt-8 text-gray-500">Loading...</div>;
+      return <div className="mt-8 text-gray-500">Fermenting pickles...</div>;
     }
 
     if (normalizedStatus === "setup" || normalizedStatus === "unknown") {
       return (
         <div className="mt-8 text-gray-600 text-lg font-light">
           <p>
-            Waiting for the host to start the pickle jar (suggestion) phase.
+            Waiting for the host to start the pickle jar suggestion phase.
           </p>
         </div>
       );
@@ -640,7 +640,7 @@ export default function PickleJarPage() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex flex-col">
                 <h2 className="text-2xl font-light text-gray-900">
-                  Pickle Jar (pickles/suggestions)
+                  Pickles
                 </h2>
                 {picklejar.suggestion_deadline && (
                   <p className="text-sm font-medium text-red-600">
@@ -666,7 +666,7 @@ export default function PickleJarPage() {
                   <span className="text-lg font-medium">+</span>
                 </div>
                 <span className="font-medium text-gray-900 relative z-10 group-hover:text-emerald-900">
-                  Drop a Pickle
+                  Add a Pickle
                 </span>
               </Link>
 
@@ -778,7 +778,7 @@ export default function PickleJarPage() {
 
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
-                Pickles on the ballot
+                Pickles in the jar
               </h3>
               <div className="space-y-4 max-h-[40vh] overflow-y-auto">
                 {loadingSuggestions && (

@@ -182,8 +182,8 @@ export default function SuggestPage() {
       );
       router.push(`/jar/${id}`);
     } catch (error) {
-      console.error("Failed to drop this pickle:", error);
-      addToast("Failed to drop this pickle. Please try again.", "error");
+      console.error("Failed to add this pickle:", error);
+      addToast("Failed to add this pickle. Please try again.", "error");
     }
   };
 
@@ -206,13 +206,13 @@ export default function SuggestPage() {
               htmlFor="title"
               className="block text-2xl md:text-3xl font-light text-gray-900"
             >
-              1. What pickle are you dropping?{" "}
+              1. What pickle are you adding?{" "}
               <span className="text-red-500">*</span>
             </label>
             <input
               id="title"
               type="text"
-              placeholder="e.g. Thai Food, Bowling"
+              placeholder="e.g. Thai Food, Bowling, Board Game Café, Restuarant"
               {...register("title", { required: "Pickle name is required" })}
               className="w-full border-b-2 border-gray-200 bg-transparent py-2 text-2xl md:text-3xl text-gray-900 placeholder-gray-300 focus:border-gray-900 focus:outline-none transition-colors"
               autoFocus
@@ -277,7 +277,7 @@ export default function SuggestPage() {
               inputId="location"
               placeholder={
                 structuredLocationEnabled
-                  ? "Search Mapbox or type any place details"
+                  ? "enter any location details"
                   : "Type any neighborhood, venue, or link"
               }
               proximity={jarProximity}
@@ -289,7 +289,7 @@ export default function SuggestPage() {
               type="submit"
               className="inline-flex items-center justify-center rounded-md bg-gray-900 px-8 py-4 text-lg font-medium text-white shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all"
             >
-              Drop Pickle ↵
+              Add Pickle ↵
             </button>
           </div>
         </form>

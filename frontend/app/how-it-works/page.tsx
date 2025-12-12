@@ -13,12 +13,12 @@ const steps = [
   {
     title: "Fill the Pickle Jar",
     description:
-      "Every crew member drops pickles into the jar—Thai food, bowling, movie night, whatever. Add a pickle drop deadline so folks know when to toss theirs in.",
+      "Every crew member adds pickles into the jar—Thai food, bowling, movie night, whatever. Add a suggestion deadline so folks know when to toss theirs in.",
   },
   {
     title: "Vote on Pickles",
     description:
-      "When it's voting time, everyone gets a stash of pickle points. Pile them onto one favorite pickle or spread the love across a few contenders.",
+      "When it's voting time, everyone gets a stash of points. Pile them onto one favorite pickle or spread the love across a few contenders.",
   },
   {
     title: "Crown the Winning Pickle",
@@ -38,8 +38,7 @@ export default function HowItWorksPage() {
             How it works
           </h1>
           <p className="text-xl text-gray-600 font-light">
-            Break the group chat spiral. Pick a plan in four pickle-powered
-            steps.
+            Break the group chat spiral. Get out of a pickle in four steps.
           </p>
         </div>
 

@@ -224,7 +224,7 @@ export default function EditPage() {
                       onClick={() => handleAdvancePhase("start-suggesting")}
                       className="rounded-md bg-gray-900 px-6 py-2 text-sm font-medium text-white hover:bg-black transition-all shadow-sm"
                     >
-                      Start Pickle Drop →
+                      Start Pickle Suggestions →
                     </button>
                   </div>
                 )}

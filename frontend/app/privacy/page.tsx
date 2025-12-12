@@ -76,7 +76,7 @@ const sections = [
 
 const FEEDBACK_FORM_URL =
   process.env.NEXT_PUBLIC_FEEDBACK_FORM_URL ??
-  "https://forms.gle/picklejar-feedback";
+  "https://forms.gle/jD3M18FAfZVbtjVVA";
 
 export const metadata: Metadata = {
   title: "Privacy Policy – PickleJar",
@@ -88,12 +88,12 @@ export default function PrivacyPage() {
     <main className="min-h-screen bg-white px-6 py-12">
       <div className="mx-auto max-w-4xl space-y-12 text-gray-900">
         <header className="space-y-4">
-          <p className="text-sm text-gray-500">Last updated: April 24, 2018</p>
+          <p className="text-sm text-gray-500">Last updated: December 12, 2025</p>
           <h1 className="text-4xl font-light">Privacy Policy</h1>
           <p className="text-lg text-gray-600">
             Your privacy matters to us. This page explains what we collect, why
             we collect it, and how you remain in control when using the
-            PickleJar site located at https://picklejar.app (the "Site").
+            PickleJar site located at https://depickle.me (the "Site").
           </p>
         </header>
 
