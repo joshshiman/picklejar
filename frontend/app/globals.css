@@ -82,10 +82,12 @@ body {
 .pickle-map .leaflet-popup-content-wrapper,
 .pickle-map .leaflet-popup-tip {
     background: #ffffff;
-    color: #064e3b;
-    box-shadow: 0 20px 45px rgba(6, 78, 59, 0.18);
-    border-radius: 1rem;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: #111827; /* gray-900 */
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Tailwind's shadow-lg */
+    border-radius: 0.5rem; /* rounded-lg */
+    border: 1px solid #e5e7eb; /* gray-200 */
 }
 
 @keyframes slideInFromBottom {

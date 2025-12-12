@@ -182,6 +182,10 @@ function MapViewport({
 }
 
 function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
+  const [selectedSuggestionId, setSelectedSuggestionId] = useState<
+    string | null
+  >(null);
+
   const markers = useMemo(
     () =>
       suggestions
@@ -252,27 +256,47 @@ function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
           }
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-        {markers.map(({ suggestion, coords, address }) => (
-          <CircleMarker
-            key={suggestion.id}
-            center={coords}
-            radius={10}
-            pathOptions={{
-              color: "#059669",
-              fillColor: "#34d399",
-              fillOpacity: 0.9,
-            }}
-          >
-            <Popup>
-              <p className="text-sm font-semibold text-gray-900">
-                {suggestion.title}
-              </p>
-              {address && (
-                <p className="mt-1 text-xs text-gray-600">{address}</p>
-              )}
-            </Popup>
-          </CircleMarker>
-        ))}
+        {markers.map(({ suggestion, coords, address }) => {
+          const isSelected = selectedSuggestionId === suggestion.id;
+          return (
+            <CircleMarker
+              key={suggestion.id}
+              center={coords}
+              radius={8}
+              pathOptions={
+                isSelected
+                  ? {
+                      color: "#000",
+                      fillColor: "#000",
+                      fillOpacity: 1,
+                      weight: 2,
+                    }
+                  : {
+                      color: "#000",
+                      fillColor: "#fff",
+                      fillOpacity: 0.7,
+                      weight: 2,
+                    }
+              }
+              eventHandlers={{
+                click: () => {
+                  setSelectedSuggestionId(suggestion.id);
+                },
+              }}
+            >
+              <Popup>
+                <div className="p-1">
+                  <p className="font-bold text-gray-900 mb-1 text-lg">
+                    {suggestion.title}
+                  </p>
+                  {address && (
+                    <p className="text-sm text-gray-700">{address}</p>
+                  )}
+                </div>
+              </Popup>
+            </CircleMarker>
+          );
+        })}
       </MapContainer>
     </div>
   );
