@@ -39,6 +39,8 @@ class PickleJarUpdate(BaseModel):
     status: Optional[str] = Field(
         None, pattern="^(setup|suggesting|voting|completed|cancelled)$"
     )
+    suggestion_deadline: Optional[datetime] = None
+    voting_deadline: Optional[datetime] = None
     hangout_datetime: Optional[datetime] = None
 
 
