@@ -85,6 +85,20 @@ function classNames(...classes: Array<string | false | null | undefined>) {
 const normalizePhone = (value?: string | null) =>
   value ? value.replace(/[^+\d]/g, "") : "";
 
+const extractDigits = (value: string) => value.replace(/\D/g, "").slice(0, 10);
+
+const formatPhoneForInput = (value: string) => {
+  const digits = extractDigits(value);
+  if (!digits) return "";
+  const area = digits.slice(0, 3);
+  const prefix = digits.slice(3, 6);
+  const line = digits.slice(6);
+  if (digits.length < 3) return `(${digits}`;
+  if (digits.length === 3) return `(${area})`;
+  if (digits.length < 7) return `(${area}) ${prefix}`;
+  return `(${area}) ${prefix}-${line}`;
+};
+
 const DEFAULT_CENTER: LatLngExpression = [43.6532, -79.3832];
 
 if (typeof window !== "undefined") {
@@ -451,7 +465,8 @@ export default function PickleJarPage() {
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone.trim()) return;
+    const sanitizedPhone = normalizePhone(phone);
+    if (!sanitizedPhone) return;
 
     setIsJoining(true);
     setJoinError(null);
@@ -459,7 +474,7 @@ export default function PickleJarPage() {
     try {
       const joinRes = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/members/${id}/join`,
-        { phone_number: phone.trim() },
+        { phone_number: sanitizedPhone },
       );
       const newMemberId = joinRes.data.id;
       setMemberId(newMemberId);
@@ -961,15 +976,15 @@ export default function PickleJarPage() {
                     </label>
                     <input
                       type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="555-0123"
+                      value={formatPhoneForInput(phone)}
+                      onChange={(e) => setPhone(extractDigits(e.target.value))}
+                      placeholder="(555) 012-3456"
                       className="w-full border-b-2 border-gray-200 bg-transparent py-2 text-2xl text-gray-900 placeholder-gray-300 focus:border-gray-900 focus:outline-none transition-colors"
                     />
                   </div>
                   <button
                     type="submit"
-                    disabled={isJoining || !phone.trim()}
+                    disabled={isJoining || !phone}
                     className="inline-flex items-center justify-center rounded-md bg-gray-900 px-8 py-3 text-lg font-medium text-white shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
                   >
                     {isJoining ? "Joining…" : "Join PickleJar ↵"}
