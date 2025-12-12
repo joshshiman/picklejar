@@ -132,6 +132,7 @@ DEBUG=True
 SECRET_KEY=your-secret-key
 SMS_ENABLED=false
 EMAIL_ENABLED=false
+ENABLE_STRUCTURED_LOCATION=false
 ```
 
 ### Frontend `.env.local`:
@@ -139,9 +140,11 @@ EMAIL_ENABLED=false
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_APP_NAME=PickleJar
 NEXT_PUBLIC_SMS_VERIFICATION_ENABLED=false
+NEXT_PUBLIC_MAPBOX_TOKEN=pk.yourPublicTokenFromMapbox
+NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=false
 ```
 
-Add Twilio/SMTP secrets when enabling SMS/email features.
+Add Twilio/SMTP secrets when enabling SMS/email features. Set `NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=true` (with a corresponding `NEXT_PUBLIC_MAPBOX_TOKEN`) when you want to test the structured location picker, and toggle `ENABLE_STRUCTURED_LOCATION` on the backend to accept structured payloads.
 
 ---
 

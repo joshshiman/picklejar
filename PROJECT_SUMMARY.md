@@ -334,6 +334,7 @@ DEBUG=True
 SECRET_KEY=your-secret-key-here
 SMS_ENABLED=false
 EMAIL_ENABLED=false
+ENABLE_STRUCTURED_LOCATION=false
 ```
 
 ### Frontend Environment (`.env.local`)
@@ -341,7 +342,11 @@ EMAIL_ENABLED=false
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_APP_NAME=PickleJar
 NEXT_PUBLIC_SMS_VERIFICATION_ENABLED=false
+NEXT_PUBLIC_MAPBOX_TOKEN=pk.yourPublicTokenFromMapbox
+NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=false
 ```
+
+Set `NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=true` when you want to exercise the structured location picker (make sure `NEXT_PUBLIC_MAPBOX_TOKEN` and the backend `ENABLE_STRUCTURED_LOCATION` flag are set accordingly), otherwise keep both flags `false` for the classic suggestion form.
 
 ---
 

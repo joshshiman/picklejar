@@ -37,6 +37,8 @@ cp .env.example .env.local
 npm run dev
 ```
 
+Before running the frontend, double-check `.env.local` for `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_MAPBOX_TOKEN`, and `NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION` so the Mapbox picker and API calls hit the right targets.
+
 ---
 
 ## 🌐 Shared Link API Reference
@@ -69,6 +71,6 @@ npm run dev
 
 - Delete `backend/picklejar.db` to reset data (tables auto-created).
 - Use Swagger (`/docs`) for manual endpoint checks when building frontend.
-- Keep frontend/env pointing to `NEXT_PUBLIC_API_URL=http://localhost:8000`.
+- Keep frontend/env pointing to `NEXT_PUBLIC_API_URL=http://localhost:8000`. When you want to exercise the structured location picker, add `NEXT_PUBLIC_MAPBOX_TOKEN=pk.yourPublicTokenFromMapbox`, flip `NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=true`, and mirror the backend flag by setting `ENABLE_STRUCTURED_LOCATION=true` in `backend/.env`.
 
 ---
