@@ -188,7 +188,7 @@ export default function EditPage() {
           {/* Section 1: Phase Management (Top Priority) */}
           <section>
             <h2 className="text-2xl font-light text-gray-900 mb-8">
-              Pickle Phase Management
+              PickleJar Management
             </h2>
 
             <div className="relative border-l-2 border-gray-100 ml-3 space-y-12 pb-4">
@@ -248,7 +248,7 @@ export default function EditPage() {
                       : "text-gray-500"
                   }`}
                 >
-                  2. Pickle Drop
+                  2. Pickle Suggestion
                 </h3>
                 {normalizedStatus === "suggesting" && (
                   <div className="mt-4">

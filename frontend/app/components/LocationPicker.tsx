@@ -204,10 +204,8 @@ export function LocationPicker({
           placeholder={placeholder}
           disabled={disabled}
           className={clsx(
-            "w-full border-b-2 bg-transparent py-2 pr-14 text-xl md:text-2xl text-gray-900 placeholder-gray-400 focus:outline-none transition-colors",
-            disabled
-              ? "border-gray-200 text-gray-400"
-              : "border-gray-300 focus:border-gray-900",
+            "w-full border-b-2 border-gray-200 bg-transparent py-3 pr-14 text-2xl md:text-3xl text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none transition-colors",
+            disabled && "text-gray-400 placeholder-gray-300 cursor-not-allowed",
           )}
           aria-autocomplete="list"
           aria-expanded={showSuggestions}

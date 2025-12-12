@@ -187,6 +187,9 @@ export default function SuggestPage() {
     }
   };
 
+  const baseFieldClasses =
+    "w-full border-b-2 border-gray-200 bg-transparent py-3 text-2xl md:text-3xl text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none transition-colors";
+
   return (
     <main className="min-h-screen bg-white px-6 py-12 text-gray-900 flex flex-col justify-center">
       <div className="mx-auto max-w-2xl w-full">
@@ -214,7 +217,7 @@ export default function SuggestPage() {
               type="text"
               placeholder="e.g. Thai Food, Bowling, Board Game Café, Restuarant"
               {...register("title", { required: "Pickle name is required" })}
-              className="w-full border-b-2 border-gray-200 bg-transparent py-2 text-2xl md:text-3xl text-gray-900 placeholder-gray-300 focus:border-gray-900 focus:outline-none transition-colors"
+              className={baseFieldClasses}
               autoFocus
             />
             {errors.title && (
@@ -243,7 +246,7 @@ export default function SuggestPage() {
               id="description"
               placeholder="Links, context, reasoning for this pickle..."
               {...register("description")}
-              className="w-full border-b-2 border-gray-200 bg-transparent py-2 text-xl md:text-2xl text-gray-900 placeholder-gray-300 focus:border-gray-900 focus:outline-none transition-colors resize-none"
+              className={`${baseFieldClasses} resize-none`}
               rows={1}
               style={{ minHeight: "3rem" }}
               onInput={(e) => {
@@ -277,7 +280,7 @@ export default function SuggestPage() {
               inputId="location"
               placeholder={
                 structuredLocationEnabled
-                  ? "enter any location details"
+                  ? "Enter any location address"
                   : "Type any neighborhood, venue, or link"
               }
               proximity={jarProximity}
