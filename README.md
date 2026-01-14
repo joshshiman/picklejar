@@ -5,10 +5,8 @@
 PickleJar is a full-stack democratic planning experience that lets friends plan hangouts without the noise of long group chats. Hosts spin up a PickleJar in seconds, automatically receive a single shareable link, and everyone—guest or host—uses that same link to join, suggest ideas, vote, and see the final result.
 
 <div align="center">
-  <a href="QUICKSTART.md"><img src="https://img.shields.io/badge/Quickstart-Run%20the%20stack-16a34a?style=for-the-badge&logo=gnometerminal&logoColor=white" alt="Quickstart badge" /></a>
   <a href="API_EXAMPLES.md"><img src="https://img.shields.io/badge/API%20Recipes-curl%20helpers-0ea5e9?style=for-the-badge&logo=fastapi&logoColor=white" alt="API recipes badge" /></a>
   <a href="DEVELOPMENT.md"><img src="https://img.shields.io/badge/Dev%20Guide-patterns%20%26%20workflow-f97316?style=for-the-badge&logo=github&logoColor=white" alt="Development guide badge" /></a>
-  <a href="PROJECT_SUMMARY.md"><img src="https://img.shields.io/badge/Roadmap-current%20focus-9333ea?style=for-the-badge&logo=notion&logoColor=white" alt="Roadmap badge" /></a>
 </div>
 
 <p align="center">
@@ -27,11 +25,61 @@ PickleJar is a full-stack democratic planning experience that lets friends plan 
 ## 🔗 Quick Links
 | Need | Reference |
 | --- | --- |
-| Spin up the stack fast | [QUICKSTART.md](QUICKSTART.md) |
 | See end-to-end API calls | [API_EXAMPLES.md](API_EXAMPLES.md) |
 | Follow the day-to-day dev workflow | [DEVELOPMENT.md](DEVELOPMENT.md) |
 | Dive into architecture diagrams | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Align on UX voice and icons | [PickleJar_UX_Navigation_and_Icons.md](PickleJar_UX_Navigation_and_Icons.md) |
+
+---
+
+## ⚡ Quick Start
+
+### Recommended Workflow
+
+```bash
+git clone https://github.com/joshshiman/picklejar.git
+cd picklejar
+./start.sh          # boots backend + frontend, copies env files, opens logs
+```
+
+- **Backend:** http://localhost:8000 (Swagger at `/docs`, ReDoc at `/redoc`)
+- **Frontend:** http://localhost:3000 (typeform-style create flow, shares single `/jar/{id}` link)
+- The `start.sh` script handles venv creation, dependency installs, and concurrent servers.
+
+### Manual Setup (Alternative)
+
+**Backend:**
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+> **Note:** Before running the frontend manually, check `.env.local` for `NEXT_PUBLIC_API_URL` and map tokens.
+
+### Shared Link API Reference
+
+| Action | Endpoint | Notes |
+|--------|----------|-------|
+| Create PickleJar | `POST /api/picklejars` | Returns `id`, `points_per_voter`, and shareable link `/jar/{id}` |
+| Join with phone | `POST /api/members/{id}/join` | Saves `member_id` (persist in `localStorage`) |
+| Suggest idea | `POST /api/suggestions/{id}/suggest?member_id={member_id}` | Optional description/location/cost |
+| Start suggesting phase | `POST /api/picklejars/{id}/start-suggesting` | Host action |
+| Start voting phase | `POST /api/picklejars/{id}/start-voting` | Derives `points_per_voter = max(suggestions - 1, 1)` |
+| Vote | `POST /api/votes/{id}/vote?member_id={member_id}` | Submit array `{ votes: [{ suggestion_id, points }] }` |
+| View results | `GET /api/picklejars/{id}/results` | Winner + ranking once status is `completed` |
+| Stats | `GET /api/picklejars/{id}/stats` | Members/suggestions/votes summary |
+| Member list | `GET /api/members/{id}/members` | Anonymized participation data |
 
 ---
 
@@ -172,10 +220,10 @@ Add Twilio/SMTP secrets when enabling SMS/email features. Set `NEXT_PUBLIC_ENABL
 ## 📬 Contributing
 
 1. **Branching model:** Fork the repo (or stay within the org) and branch from `develop` using `feature/*`, `bugfix/*`, or `docs/*` prefixes so reviewers can scan intent instantly.
-2. **Environment prep:** Follow [QUICKSTART.md](QUICKSTART.md) to run both services. Confirm API calls succeed (`/health`, `/docs`) before touching frontend flows.
+2. **Environment prep:** Follow the Quick Start section above to run both services. Confirm API calls succeed (`/health`, `/docs`) before touching frontend flows.
 3. **Focused changes:** Keep PR scope tight. Touch backend routers/schemas and frontend hooks/components in the same change only when the feature truly spans both layers.
 4. **Quality gates:** Run the full lint/test suite before pushing. At minimum:
-   ```/dev/null/contributing.sh#L1-4
+   ```bash
    pytest
    pytest --cov
    npm run lint
