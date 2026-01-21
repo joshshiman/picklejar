@@ -12,6 +12,7 @@ import {
   Popup,
   TileLayer,
   useMap,
+  ZoomControl,
 } from "react-leaflet";
 import L, { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import { useToast } from "../../components/ToastProvider";
@@ -31,6 +32,7 @@ interface PickleJar {
   suggestion_deadline?: string | null;
   voting_deadline?: string | null;
   points_per_voter?: number;
+  creator_phone?: string | null;
 }
 
 interface Member {
@@ -45,7 +47,22 @@ interface Suggestion {
   title: string;
   description?: string | null;
   location?: string | null;
+  structured_location?: Record<string, unknown> | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  map_bounds?: SuggestionMapBounds | null;
 }
+
+type SuggestionMapBounds = {
+  northeast: {
+    latitude: number;
+    longitude: number;
+  };
+  southwest: {
+    latitude: number;
+    longitude: number;
+  };
+};
 
 interface Result {
   suggestion_id: string;
@@ -59,13 +76,35 @@ const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80",
   "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
   "https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1504386106331-3e4e71712b38?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80",
 ];
 
 function classNames(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-const DEFAULT_CENTER: LatLngExpression = [37.0902, -95.7129];
+const normalizePhone = (value?: string | null) =>
+  value ? value.replace(/[^+\d]/g, "") : "";
+
+const extractDigits = (value: string) => value.replace(/\D/g, "").slice(0, 10);
+
+const formatPhoneForInput = (value: string) => {
+  const digits = extractDigits(value);
+  if (!digits) return "";
+  const area = digits.slice(0, 3);
+  const prefix = digits.slice(3, 6);
+  const line = digits.slice(6);
+  if (digits.length < 3) return `(${digits}`;
+  if (digits.length === 3) return `(${area})`;
+  if (digits.length < 7) return `(${area}) ${prefix}`;
+  return `(${area}) ${prefix}-${line}`;
+};
+
+const DEFAULT_CENTER: LatLngExpression = [43.6532, -79.3832];
 
 if (typeof window !== "undefined") {
   L.Icon.Default.mergeOptions({
@@ -89,12 +128,50 @@ function parseLocationToLatLng(
   return [lat, lng];
 }
 
+function getSuggestionCoordinates(
+  suggestion: Suggestion,
+): [number, number] | null {
+  if (
+    typeof suggestion.latitude === "number" &&
+    typeof suggestion.longitude === "number"
+  ) {
+    return [suggestion.latitude, suggestion.longitude];
+  }
+  return parseLocationToLatLng(suggestion.location);
+}
+
+function getSuggestionAddress(suggestion: Suggestion): string | undefined {
+  if (
+    suggestion.structured_location &&
+    typeof suggestion.structured_location === "object" &&
+    "address" in suggestion.structured_location
+  ) {
+    const structured = suggestion.structured_location as {
+      address?: string | null;
+    };
+    if (structured.address) {
+      return structured.address;
+    }
+  }
+  return suggestion.location ?? undefined;
+}
+
+function mapBoundsToLatLngBounds(mapBounds?: SuggestionMapBounds | null) {
+  if (!mapBounds) return null;
+  return L.latLngBounds(
+    [mapBounds.southwest.latitude, mapBounds.southwest.longitude],
+    [mapBounds.northeast.latitude, mapBounds.northeast.longitude],
+  );
+}
+
 function MapViewport({
   center,
   bounds,
+  zoom,
 }: {
   center: LatLngExpression;
   bounds?: LatLngBoundsExpression | null;
+  zoom?: number;
 }) {
   const map = useMap();
 
@@ -102,84 +179,129 @@ function MapViewport({
     if (bounds) {
       map.fitBounds(bounds, { padding: [24, 24] });
     } else {
-      map.setView(center);
+      map.setView(center, zoom ?? map.getZoom());
     }
-  }, [map, center, bounds]);
+  }, [map, center, bounds, zoom]);
 
   return null;
 }
 
 function PickleMap({ suggestions }: { suggestions: Suggestion[] }) {
+  const [selectedSuggestionId, setSelectedSuggestionId] = useState<
+    string | null
+  >(null);
+
   const markers = useMemo(
     () =>
       suggestions
         .map((suggestion) => ({
           suggestion,
-          coords: parseLocationToLatLng(suggestion.location),
+          coords: getSuggestionCoordinates(suggestion),
+          address: getSuggestionAddress(suggestion),
+          bounds: mapBoundsToLatLngBounds(suggestion.map_bounds),
         }))
         .filter(
           (
             item,
-          ): item is { suggestion: Suggestion; coords: [number, number] } =>
-            Array.isArray(item.coords),
+          ): item is {
+            suggestion: Suggestion;
+            coords: [number, number];
+            address: string | undefined;
+            bounds: ReturnType<typeof mapBoundsToLatLngBounds>;
+          } => Array.isArray(item.coords),
         ),
     [suggestions],
   );
 
   const center: LatLngExpression = markers[0]?.coords ?? DEFAULT_CENTER;
-  const zoom = markers.length ? 11 : 3;
+  const zoom = markers.length ? 12 : 13;
 
   const bounds: LatLngBoundsExpression | null = useMemo(() => {
+    if (!markers.length) {
+      return null;
+    }
+
+    const structuredBounds = markers
+      .map((marker) => marker.bounds)
+      .filter((b): b is L.LatLngBounds => Boolean(b));
+
+    if (structuredBounds.length) {
+      const [first, ...rest] = structuredBounds;
+      return rest.reduce((acc, curr) => acc.extend(curr), first.pad(0.05));
+    }
+
     if (markers.length > 1) {
       return markers
         .slice(1)
         .reduce(
           (acc, { coords }) => acc.extend(coords),
           L.latLngBounds(markers[0].coords, markers[0].coords),
-        );
+        )
+        .pad(0.05);
     }
+
     return null;
   }, [markers]);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
       <MapContainer
         center={center}
         zoom={zoom}
         scrollWheelZoom={false}
+        zoomControl={false}
         className="h-56 w-full pickle-map"
         style={{ filter: "hue-rotate(-8deg) saturate(1.1)" }}
       >
-        <MapViewport center={center} bounds={bounds} />
+        <MapViewport center={center} bounds={bounds} zoom={zoom} />
+        <ZoomControl position="topright" />
         <TileLayer
           attribution={
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors • &copy; <a href="https://carto.com/attributions">CARTO</a>'
           }
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-        {markers.map(({ suggestion, coords }) => (
-          <CircleMarker
-            key={suggestion.id}
-            center={coords}
-            radius={10}
-            pathOptions={{
-              color: "#059669",
-              fillColor: "#34d399",
-              fillOpacity: 0.9,
-            }}
-          >
-            <Popup>
-              <p className="text-sm font-semibold text-gray-900">
-                {suggestion.title}
-              </p>
-              {suggestion.location && (
-                <p className="mt-1 text-xs text-gray-600">
-                  {suggestion.location}
-                </p>
-              )}
-            </Popup>
-          </CircleMarker>
-        ))}
+        {markers.map(({ suggestion, coords, address }) => {
+          const isSelected = selectedSuggestionId === suggestion.id;
+          return (
+            <CircleMarker
+              key={suggestion.id}
+              center={coords}
+              radius={8}
+              pathOptions={
+                isSelected
+                  ? {
+                      color: "#000",
+                      fillColor: "#000",
+                      fillOpacity: 1,
+                      weight: 2,
+                    }
+                  : {
+                      color: "#000",
+                      fillColor: "#fff",
+                      fillOpacity: 0.7,
+                      weight: 2,
+                    }
+              }
+              eventHandlers={{
+                click: () => {
+                  setSelectedSuggestionId(suggestion.id);
+                },
+              }}
+            >
+              <Popup>
+                <div className="p-1">
+                  <p className="font-bold text-gray-900 mb-1 text-lg">
+                    {suggestion.title}
+                  </p>
+                  {address && (
+                    <p className="text-sm text-gray-700">{address}</p>
+                  )}
+                </div>
+              </Popup>
+            </CircleMarker>
+          );
+        })}
       </MapContainer>
     </div>
   );
@@ -194,6 +316,8 @@ export default function PickleJarPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [phone, setPhone] = useState("");
   const [memberId, setMemberId] = useState<string | null>(null);
+  const [memberPhone, setMemberPhone] = useState<string | null>(null);
+  const [isLocalCreator, setIsLocalCreator] = useState(false);
   const [isMember, setIsMember] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
@@ -224,6 +348,18 @@ export default function PickleJarPage() {
     if (s === "cancelled") return "cancelled";
     return "unknown";
   }, [picklejar?.status]);
+
+  const isHost = useMemo(() => {
+    if (!picklejar?.creator_phone || !memberPhone) return false;
+    return (
+      normalizePhone(picklejar.creator_phone) === normalizePhone(memberPhone)
+    );
+  }, [picklejar?.creator_phone, memberPhone]);
+
+  const canEdit = useMemo(
+    () => isHost || isLocalCreator,
+    [isHost, isLocalCreator],
+  );
 
   // Fetch core jar + members
   useEffect(() => {
@@ -259,7 +395,36 @@ export default function PickleJarPage() {
       setMemberId(storedMemberId);
       setIsMember(true);
     }
+
+    const creatorFlag = localStorage.getItem(`pj_creator_${id}`);
+    setIsLocalCreator(creatorFlag === "true");
   }, [id]);
+
+  useEffect(() => {
+    if (!memberId) {
+      setMemberPhone(null);
+      return;
+    }
+
+    const fetchMemberDetails = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/members/member/${memberId}`,
+        );
+        setMemberPhone(res.data.phone_number || null);
+      } catch (error: any) {
+        if (error?.response?.status === 404) {
+          localStorage.removeItem(`pj_member_${id}`);
+          setMemberId(null);
+          setIsMember(false);
+          setMemberPhone(null);
+        }
+        console.error("Failed to fetch member details:", error);
+      }
+    };
+
+    fetchMemberDetails();
+  }, [id, memberId]);
 
   // Fetch suggestions when in suggesting/voting/completed
   useEffect(() => {
@@ -329,7 +494,8 @@ export default function PickleJarPage() {
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone.trim()) return;
+    const sanitizedPhone = normalizePhone(phone);
+    if (!sanitizedPhone) return;
 
     setIsJoining(true);
     setJoinError(null);
@@ -337,10 +503,11 @@ export default function PickleJarPage() {
     try {
       const joinRes = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/members/${id}/join`,
-        { phone_number: phone.trim() },
+        { phone_number: sanitizedPhone },
       );
       const newMemberId = joinRes.data.id;
       setMemberId(newMemberId);
+      setMemberPhone(joinRes.data.phone_number || null);
       localStorage.setItem(`pj_member_${id}`, newMemberId);
       setIsMember(true);
 
@@ -458,14 +625,14 @@ export default function PickleJarPage() {
 
   const renderPhaseContent = () => {
     if (!picklejar) {
-      return <div className="mt-8 text-gray-500">Loading...</div>;
+      return <div className="mt-8 text-gray-500">Fermenting pickles...</div>;
     }
 
     if (normalizedStatus === "setup" || normalizedStatus === "unknown") {
       return (
         <div className="mt-8 text-gray-600 text-lg font-light">
           <p>
-            Waiting for the host to start the pickle jar (suggestion) phase.
+            Waiting for the host to start the pickle jar suggestion phase.
           </p>
         </div>
       );
@@ -478,7 +645,7 @@ export default function PickleJarPage() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex flex-col">
                 <h2 className="text-2xl font-light text-gray-900">
-                  Pickle Jar (pickles/suggestions)
+                  Pickles
                 </h2>
                 {picklejar.suggestion_deadline && (
                   <p className="text-sm font-medium text-red-600">
@@ -504,7 +671,7 @@ export default function PickleJarPage() {
                   <span className="text-lg font-medium">+</span>
                 </div>
                 <span className="font-medium text-gray-900 relative z-10 group-hover:text-emerald-900">
-                  Drop a Pickle
+                  Add a Pickle
                 </span>
               </Link>
 
@@ -616,9 +783,9 @@ export default function PickleJarPage() {
 
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
-                Pickles on the ballot
+                Pickles in the jar
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[40vh] overflow-y-auto">
                 {loadingSuggestions && (
                   <p className="text-gray-500">Loading pickles…</p>
                 )}
@@ -812,13 +979,15 @@ export default function PickleJarPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <Link
-                    href={`/jar/${id}/edit`}
-                    className="inline-flex items-center justify-center rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors"
-                  >
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Edit
-                  </Link>
+                  {canEdit && (
+                    <Link
+                      href={`/jar/${id}/edit`}
+                      className="inline-flex items-center justify-center rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 transition-colors"
+                    >
+                      <Edit2 className="mr-2 h-4 w-4" />
+                      Edit
+                    </Link>
+                  )}
                 </div>
               </div>
             </header>
@@ -836,15 +1005,15 @@ export default function PickleJarPage() {
                     </label>
                     <input
                       type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="555-0123"
+                      value={formatPhoneForInput(phone)}
+                      onChange={(e) => setPhone(extractDigits(e.target.value))}
+                      placeholder="(555) 012-3456"
                       className="w-full border-b-2 border-gray-200 bg-transparent py-2 text-2xl text-gray-900 placeholder-gray-300 focus:border-gray-900 focus:outline-none transition-colors"
                     />
                   </div>
                   <button
                     type="submit"
-                    disabled={isJoining || !phone.trim()}
+                    disabled={isJoining || !phone}
                     className="inline-flex items-center justify-center rounded-md bg-gray-900 px-8 py-3 text-lg font-medium text-white shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
                   >
                     {isJoining ? "Joining…" : "Join PickleJar ↵"}

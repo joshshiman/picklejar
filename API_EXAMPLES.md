@@ -561,7 +561,12 @@ Make sure your `.env` file is configured:
 ```bash
 DATABASE_URL=sqlite:///./picklejar.db
 DEBUG=True
+ENABLE_STRUCTURED_LOCATION=false
+NEXT_PUBLIC_MAPBOX_TOKEN=pk.yourPublicTokenFromMapbox
+NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=false
 ```
+
+Flip `ENABLE_STRUCTURED_LOCATION` and `NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION` to `true` (with a valid `NEXT_PUBLIC_MAPBOX_TOKEN`) whenever you want to ingest structured suggestion locations end to end.
 
 ---
 

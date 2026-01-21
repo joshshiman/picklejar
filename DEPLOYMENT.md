@@ -97,6 +97,7 @@ Set via `fly secrets set KEY=VALUE`:
 | `SECRET_KEY` | ✅ Yes | Random secret for sessions |
 | `CORS_ORIGINS` | No | Comma-separated allowed origins |
 | `DEBUG` | No | Set to "true" for debug mode (default: false) |
+| `ENABLE_STRUCTURED_LOCATION` | No | Feature flag for accepting structured suggestion payloads; keep `false` until the DB columns are live |
 | `TWILIO_*` | No | SMS verification (future feature) |
 | `SMTP_*` | No | Email notifications (future feature) |
 
@@ -193,7 +194,11 @@ Update your frontend environment variables to point to Fly.io:
 
 ```env
 NEXT_PUBLIC_API_URL=https://your-app.fly.dev
+NEXT_PUBLIC_MAPBOX_TOKEN=pk.yourProductionTokenFromMapbox
+NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=false
 ```
+
+Flip `NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION` (and ensure the backend `ENABLE_STRUCTURED_LOCATION` secret matches) only when you want the structured location picker live; otherwise leave it `false` so the classic suggestion form stays in place.
 
 ## Support
 

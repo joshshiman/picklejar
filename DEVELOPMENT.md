@@ -415,7 +415,10 @@ npm run dev -- -p 3001
 ```bash
 DEBUG=False
 DATABASE_URL=postgresql://... # Supabase connection string
+ENABLE_STRUCTURED_LOCATION=true  # Enable structured location ingestion when supported
 ```
+
+Toggle `ENABLE_STRUCTURED_LOCATION` only after the backend and database have the structured location columns deployed; leave it `false` otherwise.
 
 2. **Deploy:**
 ```bash
@@ -442,7 +445,11 @@ flyctl deploy
 3. **Set environment variables:**
 ```
 NEXT_PUBLIC_API_URL=https://your-backend.railway.app
+NEXT_PUBLIC_MAPBOX_TOKEN=pk.yourPublicTokenFromMapbox
+NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=false # Switch to true when the picker should be visible
 ```
+
+Set `NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=true` (and match the backend flag) whenever you want the Mapbox-powered picker live in production.
 
 4. **Deploy:**
    - Vercel auto-deploys on push to main

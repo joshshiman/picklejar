@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import members, picklejars, suggestions, votes
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)  # Disabled - tables created manually in Supabase
 
 app = FastAPI(
     title="PickleJar API",
@@ -19,7 +19,7 @@ from config import settings
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS + [
+    allow_origins=settings.cors_origins_list + [
         "https://api.depickle.me",
         "https://depickle.me",
         "https://www.depickle.me",

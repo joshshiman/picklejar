@@ -2,7 +2,17 @@ import uuid
 from datetime import datetime
 
 from database import Base
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
 
 
@@ -117,6 +127,13 @@ class Suggestion(Base):
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     location = Column(String, nullable=True)
+    structured_location = Column(JSON, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    map_bounds = Column(JSON, nullable=True)
+    geo_source = Column(String, nullable=True)
+    location_confidence = Column(Integer, nullable=True)
+    location_last_verified_at = Column(DateTime, nullable=True)
     estimated_cost = Column(String, nullable=True)  # e.g., "$", "$$", "$$$"
 
     # Status

@@ -4,6 +4,83 @@
 
 PickleJar is a full-stack democratic planning experience that lets friends plan hangouts without the noise of long group chats. Hosts spin up a PickleJar in seconds, automatically receive a single shareable link, and everyone—guest or host—uses that same link to join, suggest ideas, vote, and see the final result.
 
+<div align="center">
+  <a href="API_EXAMPLES.md"><img src="https://img.shields.io/badge/API%20Recipes-curl%20helpers-0ea5e9?style=for-the-badge&logo=fastapi&logoColor=white" alt="API recipes badge" /></a>
+  <a href="DEVELOPMENT.md"><img src="https://img.shields.io/badge/Dev%20Guide-patterns%20%26%20workflow-f97316?style=for-the-badge&logo=github&logoColor=white" alt="Development guide badge" /></a>
+</div>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-MVP%20polish%20in%20progress-84cc16?style=flat-square" alt="Status badge" />
+  <img src="https://img.shields.io/badge/Backend-FastAPI%20%2B%20SQLAlchemy-2563eb?style=flat-square" alt="Backend badge" />
+  <img src="https://img.shields.io/badge/Frontend-Next.js%2014%20%2B%20Tailwind-0f172a?style=flat-square&labelColor=0ea5e9" alt="Frontend badge" />
+  <img src="https://img.shields.io/badge/Tests-Pytest%20%7C%20ESLint-eab308?style=flat-square" alt="Tests badge" />
+</p>
+
+## ✨ Highlights
+- Single shared link keeps every participant on the same page through creation, suggestion, voting, and results.
+- Backed by FastAPI + SQLAlchemy with generated docs, health checks, and a clear migration path to Supabase/PostgreSQL.
+- Next.js 14 App Router frontend mirrors the product tone: lightweight, fast, and phone-friendly.
+- Automation helpers (`start.sh`, toast UX, local member persistence) make demos and onboarding painless.
+
+## 🔗 Quick Links
+| Need | Reference |
+| --- | --- |
+| See end-to-end API calls | [API_EXAMPLES.md](API_EXAMPLES.md) |
+| Follow the day-to-day dev workflow | [DEVELOPMENT.md](DEVELOPMENT.md) |
+| Dive into architecture diagrams | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Align on UX voice and icons | [PickleJar_UX_Navigation_and_Icons.md](PickleJar_UX_Navigation_and_Icons.md) |
+
+---
+
+## ⚡ Quick Start
+
+### Recommended Workflow
+
+```bash
+git clone https://github.com/joshshiman/picklejar.git
+cd picklejar
+./start.sh          # boots backend + frontend, copies env files, opens logs
+```
+
+- **Backend:** http://localhost:8000 (Swagger at `/docs`, ReDoc at `/redoc`)
+- **Frontend:** http://localhost:3000 (typeform-style create flow, shares single `/jar/{id}` link)
+- The `start.sh` script handles venv creation, dependency installs, and concurrent servers.
+
+### Manual Setup (Alternative)
+
+**Backend:**
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+> **Note:** Before running the frontend manually, check `.env.local` for `NEXT_PUBLIC_API_URL` and map tokens.
+
+### Shared Link API Reference
+
+| Action | Endpoint | Notes |
+|--------|----------|-------|
+| Create PickleJar | `POST /api/picklejars` | Returns `id`, `points_per_voter`, and shareable link `/jar/{id}` |
+| Join with phone | `POST /api/members/{id}/join` | Saves `member_id` (persist in `localStorage`) |
+| Suggest idea | `POST /api/suggestions/{id}/suggest?member_id={member_id}` | Optional description/location/cost |
+| Start suggesting phase | `POST /api/picklejars/{id}/start-suggesting` | Host action |
+| Start voting phase | `POST /api/picklejars/{id}/start-voting` | Derives `points_per_voter = max(suggestions - 1, 1)` |
+| Vote | `POST /api/votes/{id}/vote?member_id={member_id}` | Submit array `{ votes: [{ suggestion_id, points }] }` |
+| View results | `GET /api/picklejars/{id}/results` | Winner + ranking once status is `completed` |
+| Stats | `GET /api/picklejars/{id}/stats` | Members/suggestions/votes summary |
+| Member list | `GET /api/members/{id}/members` | Anonymized participation data |
+
 ---
 
 ## 🧱 Current Architecture
@@ -103,6 +180,7 @@ DEBUG=True
 SECRET_KEY=your-secret-key
 SMS_ENABLED=false
 EMAIL_ENABLED=false
+ENABLE_STRUCTURED_LOCATION=false
 ```
 
 ### Frontend `.env.local`:
@@ -110,9 +188,11 @@ EMAIL_ENABLED=false
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_APP_NAME=PickleJar
 NEXT_PUBLIC_SMS_VERIFICATION_ENABLED=false
+NEXT_PUBLIC_MAPBOX_TOKEN=pk.yourPublicTokenFromMapbox
+NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=false
 ```
 
-Add Twilio/SMTP secrets when enabling SMS/email features.
+Add Twilio/SMTP secrets when enabling SMS/email features. Set `NEXT_PUBLIC_ENABLE_STRUCTURED_LOCATION=true` (with a corresponding `NEXT_PUBLIC_MAPBOX_TOKEN`) when you want to test the structured location picker, and toggle `ENABLE_STRUCTURED_LOCATION` on the backend to accept structured payloads.
 
 ---
 
@@ -139,9 +219,18 @@ Add Twilio/SMTP secrets when enabling SMS/email features.
 
 ## 📬 Contributing
 
-- Feature branches (`feature/*`, `bugfix/*`), base `develop`/`main`.
-- Commit message style: `feat:`, `fix:`, `docs:`, `style:`.
-- Run lint/tests before pushing.
+1. **Branching model:** Fork the repo (or stay within the org) and branch from `develop` using `feature/*`, `bugfix/*`, or `docs/*` prefixes so reviewers can scan intent instantly.
+2. **Environment prep:** Follow the Quick Start section above to run both services. Confirm API calls succeed (`/health`, `/docs`) before touching frontend flows.
+3. **Focused changes:** Keep PR scope tight. Touch backend routers/schemas and frontend hooks/components in the same change only when the feature truly spans both layers.
+4. **Quality gates:** Run the full lint/test suite before pushing. At minimum:
+   ```bash
+   pytest
+   pytest --cov
+   npm run lint
+   npm run type-check
+   ```
+5. **Docs & fixtures:** Update `README.md`, `DEVELOPMENT.md`, or `API_EXAMPLES.md` whenever you alter behavior, endpoints, or CLI instructions. Add sample payloads/fixtures if your change needs new QA steps.
+6. **Pull request checklist:** Reference the issue, summarize user impact, note screenshots or recordings (especially for UX), and confirm tests/lints passed. Tag reviewers who own the affected area (backend, frontend, UX).
 
 ---
 

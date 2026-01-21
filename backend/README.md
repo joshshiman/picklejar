@@ -358,6 +358,7 @@ Environment variables in `.env`:
 | `DATABASE_URL` | Database connection string | `sqlite:///./picklejar.db` |
 | `SECRET_KEY` | Secret key for sessions | (generate random) |
 | `DEBUG` | Debug mode | `True` |
+| `ENABLE_STRUCTURED_LOCATION` | Feature flag to accept structured suggestion payloads | `False` |
 | `SMS_ENABLED` | Enable SMS verification | `False` |
 | `TWILIO_ACCOUNT_SID` | Twilio account SID | - |
 | `TWILIO_AUTH_TOKEN` | Twilio auth token | - |

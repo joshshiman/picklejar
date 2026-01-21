@@ -56,11 +56,16 @@ def join_picklejar(
         existing_member.last_active = datetime.utcnow()
         if member_data.display_name:
             existing_member.display_name = member_data.display_name
+        if not db_picklejar.creator_phone:
+            db_picklejar.creator_phone = existing_member.phone_number
         db.commit()
         db.refresh(existing_member)
         return existing_member
 
     # Create new member
+    if not db_picklejar.creator_phone:
+        db_picklejar.creator_phone = member_data.phone_number
+
     db_member = Member(
         picklejar_id=picklejar_id,
         phone_number=member_data.phone_number,
